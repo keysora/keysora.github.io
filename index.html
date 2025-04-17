@@ -30,11 +30,9 @@
     .intro-text {
       text-align: center;
       margin-top: 5px;
-      margin-bottom: 2px; /* уменьшено с 20px до 10px */
+      margin-bottom: 2px; /* минимальный отступ */
       font-size: 1.5rem;
-      max-width: 100%;
       padding: 0 10px;
-      box-sizing: border-box;
     }
 
     .menu-container {
@@ -42,11 +40,9 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      gap: 20px;
-      padding: 20px;
-      padding-bottom: 2px; /* уменьшено с 20px до 10px */
+      justify-content: flex-start;
+      gap: 10px; /* промежуток между пунктами меню */
+      padding: 5px 20px 5px; /* очень маленький padding сверху и снизу */
     }
 
     .menu-item {
@@ -54,7 +50,7 @@
       max-width: 500px;
       background: linear-gradient(135deg, red, black);
       border-radius: 20px;
-      padding: 20px;
+      padding: 15px;
       text-align: center;
       font-size: 1.2rem;
       text-decoration: none;
@@ -101,7 +97,7 @@
 
     .bottom-avatar-container {
       text-align: center;
-      padding: 5px 0; /* уменьшено с 15px до 8px */
+      padding: 5px 0; /* минимальный отступ */
     }
 
     @media screen and (max-width: 600px) {
