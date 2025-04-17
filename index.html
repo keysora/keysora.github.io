@@ -76,14 +76,19 @@
       z-index: 1000;
     }
 
-    .popup-content {
-      background: #222;
-      padding: 30px;
-      border-radius: 15px;
-      text-align: center;
-      max-width: 400px;
-      color: white;
-    }
+.popup-content {
+    background: #222;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    color: white;
+    max-width: 90vw;
+    max-height: 80vh;
+    overflow: auto;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    box-sizing: border-box;
+}
 
     .close-btn {
       margin-top: 15px;
@@ -130,19 +135,19 @@
     <div class="menu-item" onclick="openPopup('popup2')">news</div>
   </div>
 
-  <div class="popup" id="popup1">
-    <div class="popup-content">
-      <p>Это всплывающее окно №1</p>
-      <button class="close-btn" onclick="closePopup('popup1')">close</button>
-    </div>
+<div class="popup" id="popup1">
+  <div class="popup-content">
+    <p>Это всплывающее окно №1</p>
+    <button class="close-btn" onclick="closePopup('popup1')">close</button>
   </div>
+</div>
 
-  <div class="popup" id="popup2">
-    <div class="popup-content">
-      <p>Это всплывающее окно №2рпропорпроомпрпнгрлвропалуфокшщаутнгшсащнуцт8пшгнцкугиктнчщйшдькф3зйтгсецч34щшйкгстчьз83тдкнящрй3 шеч пя3йшрьчшткязйн3ачщ3йагш3тк8тящй38кя</p>
-      <button class="close-btn" onclick="closePopup('popup2')">close</button>
-    </div>
+<div class="popup" id="popup2">
+  <div class="popup-content">
+    <p>Это всплывающее окно ИОРИРОИОИОИОРМПРААЕНЕВАЕНГОРПАВАПРОЛРИМСЧВКЕНГОТИМСЧЫУКЕНРОТИМСЧЯЫВАПЕРОЬТИМСЧЫВУКЕНРОЬТИМСЧЯЫВАКЕПНРОЬТИМСЧЫВКЕНРОТИМСЧВАПРТИ ЧВКЕНРОТИМС№2</p>
+    <button class="close-btn" onclick="closePopup('popup2')">close</button>
   </div>
+</div>
 
   <div class="bottom-avatar-container">
       <a href="https://ibb.co/xSD5FZTx" target="_blank">
