@@ -194,7 +194,7 @@
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    const letters = "01XO";
+    const letters = "01METFOX";
     const fontSize = 16;
     const columns = canvas.width / fontSize;
     const drops = Array.from({ length: columns }, () => 1);
@@ -207,7 +207,7 @@
         y: 0, // начинается с верхней части
         speed: Math.random() * 2 + 2, // скорость падения
         length: Math.floor(Math.random() * 10) + 5, // длина падающей строки
-        interval: Math.random() * 300 + 500 // интервал между вспышками
+        interval: Math.random() * 200 + 300 // интервал между вспышками
       };
       flashes.push(flash);
     }
