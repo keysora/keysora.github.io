@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -58,7 +57,7 @@
     .menu-container {
       position: relative;
       z-index: 1;
-      background: url('https://cdna.artstation.com/p/assets/images/images/058/834/064/original/kayan-102.gif?1675085766') center/cover no-repeat;
+      background: url('https://media.giphy.com/media/your-gif.gif') center/cover no-repeat;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -135,20 +134,20 @@
   </style>
 </head>
 <body>
-  
+  <!-- Матрица -->
   <canvas id="matrixCanvas"></canvas>
 
-
+  <!-- Верхний аватар -->
   <div class="header">
-     <a href="https://ibb.co/xSD5FZTx" target="_blank">
-    <img src="https://i.ibb.co/tM4CLRrV/2.png" alt="Top Avatar" class="avatar" />
-  </a>
+    <a href="https://ibb.co/xghjkx" target="_blank">
+      <img src="https://i.ibb.co/ghjhjkkmV/2.png" alt="Top Avatar" class="avatar" />
+    </a>
   </div>
 
-  
+  <!-- Текст -->
   <div class="intro-text">WELCOME BACK!</div>
 
-  
+  <!-- Меню -->
   <div class="menu-container">
     <a href="https://example.com/link1" class="menu-item">bot</a>
     <a href="https://example.com/link2" class="menu-item">chat</a>
@@ -156,14 +155,14 @@
     <div class="menu-item" onclick="openPopup('popup2')">news</div>
   </div>
 
-  
+  <!-- Нижний аватар -->
   <div class="bottom-avatar-container">
     <a href="https://ibb.co/xghjkx" target="_blank">
       <img src="https://i.ibb.co/ghjhjkkmV/2.png" alt="Bottom Avatar" class="avatar" />
     </a>
   </div>
 
-
+  <!-- Попапы -->
   <div class="popup" id="popup1">
     <div class="popup-content">
       <p>Это всплывающее окно №1</p>
@@ -173,12 +172,12 @@
 
   <div class="popup" id="popup2">
     <div class="popup-content">
-      <p>Это всплывающее окно №fghjklkjhgfghjklkjhgfghjkl;lkjgfdfgsawertyujhgfty2</p>
+      <p>Это всплывающее окно №2</p>
       <button class="close-btn" onclick="closePopup('popup2')">close</button>
     </div>
   </div>
 
-  
+  <!-- JS -->
   <script>
     function openPopup(id) {
       document.getElementById(id).style.display = "flex";
@@ -188,17 +187,30 @@
       document.getElementById(id).style.display = "none";
     }
 
-    // 
+    // Матрица с вспышками
     const canvas = document.getElementById("matrixCanvas");
     const ctx = canvas.getContext("2d");
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    const letters = "01lOX";
+    const letters = "01XO";
     const fontSize = 16;
     const columns = canvas.width / fontSize;
     const drops = Array.from({ length: columns }, () => 1);
+
+    const flashes = []; // Массив для хранения вспышек
+
+    function createFlash() {
+      const flash = {
+        x: Math.floor(Math.random() * columns), // случайная позиция по X
+        y: 0, // начинается с верхней части
+        speed: Math.random() * 2 + 2, // скорость падения
+        length: Math.floor(Math.random() * 10) + 5, // длина падающей строки
+        interval: Math.random() * 300 + 500 // интервал между вспышками
+      };
+      flashes.push(flash);
+    }
 
     function drawMatrix() {
       ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
@@ -207,20 +219,28 @@
       ctx.fillStyle = "red";
       ctx.font = `${fontSize}px monospace`;
 
-      for (let i = 0; i < drops.length; i++) {
-        const text = letters.charAt(Math.floor(Math.random() * letters.length));
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-        if (drops[i] * fontSize > canvas.height || Math.random() > 0.975) {
-          drops[i] = 0;
-        }
-
-        drops[i]++;
+      // Генерация вспышек
+      if (Math.random() < 0.05) { // вероятность появления вспышки
+        createFlash();
       }
+
+      // Отрисовка вспышек
+      flashes.forEach((flash, index) => {
+        for (let i = 0; i < flash.length; i++) {
+          const text = letters.charAt(Math.floor(Math.random() * letters.length));
+          ctx.fillText(text, flash.x * fontSize, flash.y * fontSize);
+
+          flash.y += flash.speed; // движение вниз
+          if (flash.y * fontSize > canvas.height) {
+            flashes.splice(index, 1); // Удаление вспышки, если она дошла до конца
+          }
+        }
+      });
     }
 
-    setInterval(drawMatrix, 50);
+    setInterval(drawMatrix, 50); // Настройка интервала для отрисовки
 
+    // Обновление канваса при изменении размера окна
     window.addEventListener("resize", () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
