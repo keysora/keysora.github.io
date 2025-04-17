@@ -7,14 +7,22 @@
   <link rel="icon" href="https://i.ibb.co/tM4CLRrV/2.png" type="image/png" />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
   <style>
-    body
-  <canvas id="bloodCanvas"></canvas>
-    
-    {
+    body {
       margin: 0;
       background: black;
       font-family: 'Orbitron', sans-serif;
       color: white;
+      overflow-x: hidden;
+    }
+
+    #bloodCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+      pointer-events: none;
     }
 
     .header {
@@ -33,7 +41,7 @@
     .intro-text {
       text-align: center;
       margin-top: 5px;
-      margin-bottom: 2px; /* минимальный отступ */
+      margin-bottom: 2px;
       font-size: 1.5rem;
       padding: 0 10px;
     }
@@ -44,8 +52,8 @@
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      gap: 10px; /* промежуток между пунктами меню */
-      padding: 5px 20px 5px; /* очень маленький padding сверху и снизу */
+      gap: 10px;
+      padding: 5px 20px 5px;
     }
 
     .menu-item {
@@ -79,19 +87,19 @@
       z-index: 1000;
     }
 
-.popup-content {
-    background: #222;
-    padding: 30px;
-    border-radius: 15px;
-    text-align: center;
-    color: white;
-    max-width: 90vw;
-    max-height: 80vh;
-    overflow: auto;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    box-sizing: border-box;
-}
+    .popup-content {
+      background: #222;
+      padding: 30px;
+      border-radius: 15px;
+      text-align: center;
+      color: white;
+      max-width: 90vw;
+      max-height: 80vh;
+      overflow: auto;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      box-sizing: border-box;
+    }
 
     .close-btn {
       margin-top: 15px;
@@ -105,7 +113,7 @@
 
     .bottom-avatar-container {
       text-align: center;
-      padding: 5px 0; /* минимальный отступ */
+      padding: 5px 0;
     }
 
     @media screen and (max-width: 600px) {
@@ -121,10 +129,13 @@
   </style>
 </head>
 <body>
+  <!-- Канвас должен быть САМЫМ ПЕРВЫМ в body -->
+  <canvas id="bloodCanvas"></canvas>
+
   <div class="header">
-     <a href="https://ibb.co/xSD5FZTx" target="_blank">
-    <img src="https://i.ibb.co/tM4CLRrV/2.png" alt="Top Avatar" class="avatar" />
-  </a>
+    <a href="https://ibb.co/xghjkx" target="_blank">
+      <img src="https://i.ibb.co/ghjhjkkmV/2.png" alt="Top Avatar" class="avatar" />
+    </a>
   </div>
 
   <div class="intro-text">
@@ -138,89 +149,73 @@
     <div class="menu-item" onclick="openPopup('popup2')">news</div>
   </div>
 
-<div class="popup" id="popup1">
-  <div class="popup-content">
-    <p>Это всплывающее окно №1</p>
-    <button class="close-btn" onclick="closePopup('popup1')">close</button>
-  </div>
-</div>
-
-<div class="popup" id="popup2">
-  <div class="popup-content">
-    <p>Это всплывающее окно ИОРИРОИОИОИОРМПРААЕНЕВАЕНГОРПАВАПРОЛРИМСЧВКЕНГОТИМСЧЫУКЕНРОТИМСЧЯЫВАПЕРОЬТИМСЧЫВУКЕНРОЬТИМСЧЯЫВАКЕПНРОЬТИМСЧЫВКЕНРОТИМСЧВАПРТИ ЧВКЕНРОТИМС№2</p>
-    <button class="close-btn" onclick="closePopup('popup2')">close</button>
-  </div>
-</div>
-
-  <div class="bottom-avatar-container">
-      <a href="https://ibb.co/xSD5FZTx" target="_blank">
-    <img src="https://i.ibb.co/tM4CLRrV/2.png" alt="Ищеещь Avatar" class="avatar" />
-  </a>
-   
+  <div class="popup" id="popup1">
+    <div class="popup-content">
+      <p>Это всплывающее окно №1</p>
+      <button class="close-btn" onclick="closePopup('popup1')">close</button>
+    </div>
   </div>
 
- <script>
-  const canvas = document.getElementById("bloodCanvas");
-  const ctx = canvas.getContext("2d");
+  <div class="popup" id="popup2">
+    <div class="popup-content">
+      <p>Это всплывающее окно №2</p>
+      <button class="close-btn" onclick="closePopup('popup2')">close</button>
+    </div>
+  </div>
 
-  let width = window.innerWidth;
-  let height = window.innerHeight;
-  canvas.width = width;
-  canvas.height = height;
+  <!-- Скрипт матрицы -->
+  <script>
+    const canvas = document.getElementById("bloodCanvas");
+    const ctx = canvas.getContext("2d");
 
-  const fontSize = 16;
-  const columns = Math.floor(width / fontSize);
-  const drops = Array(columns).fill(1);
+    let width, height;
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
 
-  const redChars = "⟁⨀⩚⩔⩳⧗⧛⧻⨁⧖".split(""); // можно любые глифы, выглядит киберпанково
+    const fontSize = 16;
+    const columns = Math.floor(width / fontSize);
+    const drops = Array(columns).fill(1);
 
-  function drawMatrix() {
-    ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
-    ctx.fillRect(0, 0, width, height);
+    function draw() {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
+      ctx.fillRect(0, 0, width, height);
 
-    ctx.fillStyle = "#ff0000"; // красный цвет
-    ctx.font = `${fontSize}px monospace`;
+      ctx.fillStyle = "red";
+      ctx.font = fontSize + "px monospace";
 
-    for (let i = 0; i < drops.length; i++) {
-      const text = redChars[Math.floor(Math.random() * redChars.length)];
-      const x = i * fontSize;
-      const y = drops[i] * fontSize;
+      for (let i = 0; i < drops.length; i++) {
+        const text = Math.random() > 0.5 ? "0" : "1";
+        const x = i * fontSize;
+        const y = drops[i] * fontSize;
 
-      ctx.fillText(text, x, y);
+        ctx.fillText(text, x, y);
 
-      if (y > height && Math.random() > 0.975) {
-        drops[i] = 0;
+        if (y > height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+
+        drops[i]++;
       }
 
-      drops[i]++;
+      requestAnimationFrame(draw);
     }
 
-    requestAnimationFrame(drawMatrix);
-  }
+    draw();
+  </script>
 
-  function resizeMatrix() {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-  }
+  <!-- Скрипт для открытия/закрытия окон -->
+  <script>
+    function openPopup(id) {
+      document.getElementById(id).style.display = "flex";
+    }
 
-  window.addEventListener("resize", () => {
-    resizeMatrix();
-  });
-
-  drawMatrix();
-</script>
-
-<style>
-#bloodCanvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: -1;
-  pointer-events: none;
-}
-  }
-</style>
+    function closePopup(id) {
+      document.getElementById(id).style.display = "none";
+    }
+  </script>
 </body>
 </html>
