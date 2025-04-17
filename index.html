@@ -4,18 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OX</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
   <style>
     body {
       margin: 0;
       background: black;
-      font-family: Arial, sans-serif;
+      font-family: 'Orbitron', sans-serif;
       color: white;
     }
 
     .header {
       background: black;
       text-align: center;
-      padding: 20px 0 10px;
+      padding: 20px 0 5px;
     }
 
     .avatar {
@@ -24,12 +25,17 @@
       object-fit: cover;
       border-radius: 50%;
     }
-    .intro-text     {
-    text-align: center;   
-    max-width: 500px;  
 
+    .intro-text {
+      text-align: center;
+      margin-top: 5px;
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+      max-width: 100%;
+      padding: 0 10px;
+      box-sizing: border-box;
     }
-      
+
     .menu-container {
       background: url('your-menu-background.gif') center/cover no-repeat;
       display: flex;
@@ -95,17 +101,29 @@
       text-align: center;
       padding: 15px 0;
     }
+
+    @media screen and (max-width: 600px) {
+      .intro-text {
+        font-size: 1.2rem;
+      }
+
+      .avatar {
+        width: 120px;
+        height: 120px;
+      }
+    }
   </style>
 </head>
 <body>
-<div class="header">
-  <a href="https://ibb.co/xSD5FZTx" target="_blank">
+  <div class="header">
+     <a href="https://ibb.co/xSD5FZTx" target="_blank">
     <img src="https://i.ibb.co/tM4CLRrV/2.png" alt="Top Avatar" class="avatar" />
   </a>
-</div>
+  </div>
+
   <div class="intro-text">
-  WELCOME BACK!
-</div>
+    WELCOME BACK!
+  </div>
 
   <div class="menu-container">
     <a href="https://example.com/link1" class="menu-item">bot</a>
