@@ -158,80 +158,55 @@
    
   </div>
 
-  <script>
-    function openPopup(id) {
-      document.getElementById(id).style.display = 'flex';
-    }
-
-    function closePopup(id) {
-      document.getElementById(id).style.display = 'none';
-    }
-  </script>
-
-  <canvas id="bloodCanvas"></canvas>
-
-<script>
+ <script>
   const canvas = document.getElementById("bloodCanvas");
   const ctx = canvas.getContext("2d");
 
-  let width, height;
-  function resizeCanvas() {
+  let width = window.innerWidth;
+  let height = window.innerHeight;
+  canvas.width = width;
+  canvas.height = height;
+
+  const fontSize = 16;
+  const columns = Math.floor(width / fontSize);
+  const drops = Array(columns).fill(1);
+
+  const redChars = "⟁⨀⩚⩔⩳⧗⧛⧻⨁⧖".split(""); // можно любые глифы, выглядит киберпанково
+
+  function drawMatrix() {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.fillStyle = "#ff0000"; // красный цвет
+    ctx.font = `${fontSize}px monospace`;
+
+    for (let i = 0; i < drops.length; i++) {
+      const text = redChars[Math.floor(Math.random() * redChars.length)];
+      const x = i * fontSize;
+      const y = drops[i] * fontSize;
+
+      ctx.fillText(text, x, y);
+
+      if (y > height && Math.random() > 0.975) {
+        drops[i] = 0;
+      }
+
+      drops[i]++;
+    }
+
+    requestAnimationFrame(drawMatrix);
+  }
+
+  function resizeMatrix() {
     width = canvas.width = window.innerWidth;
     height = canvas.height = window.innerHeight;
   }
-  window.addEventListener('resize', resizeCanvas);
-  resizeCanvas();
 
-  const meteors = [];
+  window.addEventListener("resize", () => {
+    resizeMatrix();
+  });
 
-  function createMeteor() {
-    meteors.push({
-      x: Math.random() * width,
-      y: -20,
-      size: Math.random() * 6 + 4,
-      speed: Math.random() * 3 + 2,
-      trail: [],
-      dripping: false,
-      life: 60
-    });
-  }
-
-  function draw() {
-    ctx.clearRect(0, 0, width, height);
-
-    meteors.forEach((m, i) => {
-      if (!m.dripping) {
-        m.y += m.speed;
-        m.trail.push({ x: m.x, y: m.y });
-
-        if (m.y > height - 10) {
-          m.dripping = true;
-        }
-      } else {
-        m.life--;
-        m.trail.push({ x: m.x + (Math.random() - 0.5) * 2, y: m.y + (60 - m.life) });
-      }
-
-      // Draw meteor trail or drip
-      ctx.beginPath();
-      ctx.fillStyle = "red";
-      for (let j = 0; j < m.trail.length; j++) {
-        const point = m.trail[j];
-        ctx.moveTo(point.x, point.y);
-        ctx.arc(point.x, point.y, m.size * (1 - j / m.trail.length), 0, 2 * Math.PI);
-      }
-      ctx.fill();
-
-      if (m.life <= 0) {
-        meteors.splice(i, 1);
-      }
-    });
-
-    requestAnimationFrame(draw);
-  }
-
-  setInterval(createMeteor, 300); // частота появления
-  draw();
+  drawMatrix();
 </script>
 
 <style>
