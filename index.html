@@ -58,7 +58,7 @@
     .menu-container {
       position: relative;
       z-index: 1;
-      background: url('https://media.giphy.com/media/your-gif.gif') center/cover no-repeat;
+      background: url('https://cdna.artstation.com/p/assets/images/images/058/834/064/original/kayan-102.gif?1675085766') center/cover no-repeat;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -135,20 +135,20 @@
   </style>
 </head>
 <body>
-  <!-- Матрица -->
+  
   <canvas id="matrixCanvas"></canvas>
 
-  <!-- Верхний аватар -->
+
   <div class="header">
     <a href="https://ibb.co/xghjkx" target="_blank">
       <img src="https://i.ibb.co/ghjhjkkmV/2.png" alt="Top Avatar" class="avatar" />
     </a>
   </div>
 
-  <!-- Текст -->
+  
   <div class="intro-text">WELCOME BACK!</div>
 
-  <!-- Меню -->
+  
   <div class="menu-container">
     <a href="https://example.com/link1" class="menu-item">bot</a>
     <a href="https://example.com/link2" class="menu-item">chat</a>
@@ -156,14 +156,14 @@
     <div class="menu-item" onclick="openPopup('popup2')">news</div>
   </div>
 
-  <!-- Нижний аватар -->
+  
   <div class="bottom-avatar-container">
     <a href="https://ibb.co/xghjkx" target="_blank">
       <img src="https://i.ibb.co/ghjhjkkmV/2.png" alt="Bottom Avatar" class="avatar" />
     </a>
   </div>
 
-  <!-- Попапы -->
+
   <div class="popup" id="popup1">
     <div class="popup-content">
       <p>Это всплывающее окно №1</p>
@@ -178,7 +178,7 @@
     </div>
   </div>
 
-  <!-- JS -->
+  
   <script>
     function openPopup(id) {
       document.getElementById(id).style.display = "flex";
@@ -188,14 +188,14 @@
       document.getElementById(id).style.display = "none";
     }
 
-    // Матрица
+    // 
     const canvas = document.getElementById("matrixCanvas");
     const ctx = canvas.getContext("2d");
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    const letters = "01XO";
+    const letters = "01lOX";
     const fontSize = 16;
     const columns = canvas.width / fontSize;
     const drops = Array.from({ length: columns }, () => 1);
