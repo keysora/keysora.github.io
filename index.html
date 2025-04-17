@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,26 +8,32 @@
   <link rel="icon" href="https://i.ibb.co/tM4CLRrV/2.png" type="image/png" />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
   <style>
-    body {
+    * {
       margin: 0;
-      background: black;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
       font-family: 'Orbitron', sans-serif;
+      background: black;
       color: white;
       overflow-x: hidden;
     }
 
-    #bloodCanvas {
+    #matrixCanvas {
       position: fixed;
       top: 0;
       left: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: -1;
+      z-index: 0;
+      width: 100%;
+      height: 100%;
       pointer-events: none;
     }
 
-    .header {
-      background: black;
+    .header, .bottom-avatar-container {
+      position: relative;
+      z-index: 1;
       text-align: center;
       padding: 20px 0 5px;
     }
@@ -39,21 +46,25 @@
     }
 
     .intro-text {
+      position: relative;
+      z-index: 1;
       text-align: center;
       margin-top: 5px;
-      margin-bottom: 2px;
+      margin-bottom: 20px;
       font-size: 1.5rem;
       padding: 0 10px;
     }
 
     .menu-container {
-      background: url('https://cdna.artstation.com/p/assets/images/images/058/834/064/original/kayan-102.gif?1675085766') center/cover no-repeat;
+      position: relative;
+      z-index: 1;
+      background: url('https://media.giphy.com/media/your-gif.gif') center/cover no-repeat;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
       gap: 10px;
-      padding: 5px 20px 5px;
+      padding: 5px 20px;
     }
 
     .menu-item {
@@ -111,11 +122,6 @@
       cursor: pointer;
     }
 
-    .bottom-avatar-container {
-      text-align: center;
-      padding: 5px 0;
-    }
-
     @media screen and (max-width: 600px) {
       .intro-text {
         font-size: 1.2rem;
@@ -129,19 +135,20 @@
   </style>
 </head>
 <body>
-  <!-- Канвас должен быть САМЫМ ПЕРВЫМ в body -->
-  <canvas id="bloodCanvas"></canvas>
+  <!-- Матрица -->
+  <canvas id="matrixCanvas"></canvas>
 
+  <!-- Верхний аватар -->
   <div class="header">
     <a href="https://ibb.co/xghjkx" target="_blank">
       <img src="https://i.ibb.co/ghjhjkkmV/2.png" alt="Top Avatar" class="avatar" />
     </a>
   </div>
 
-  <div class="intro-text">
-    WELCOME BACK!
-  </div>
+  <!-- Текст -->
+  <div class="intro-text">WELCOME BACK!</div>
 
+  <!-- Меню -->
   <div class="menu-container">
     <a href="https://example.com/link1" class="menu-item">bot</a>
     <a href="https://example.com/link2" class="menu-item">chat</a>
@@ -149,6 +156,14 @@
     <div class="menu-item" onclick="openPopup('popup2')">news</div>
   </div>
 
+  <!-- Нижний аватар -->
+  <div class="bottom-avatar-container">
+    <a href="https://ibb.co/xghjkx" target="_blank">
+      <img src="https://i.ibb.co/ghjhjkkmV/2.png" alt="Bottom Avatar" class="avatar" />
+    </a>
+  </div>
+
+  <!-- Попапы -->
   <div class="popup" id="popup1">
     <div class="popup-content">
       <p>Это всплывающее окно №1</p>
@@ -163,55 +178,7 @@
     </div>
   </div>
 
-      <a href="https://ibb.co/xSD5FZTx" target="_blank">
-    <img src="https://i.ibb.co/tM4CLRrV/2.png" alt=“Bottom Avatar" class="avatar" />
-  </a>
-
-  <!-- Скрипт матрицы -->
-  <script>
-    const canvas = document.getElementById("bloodCanvas");
-    const ctx = canvas.getContext("2d");
-
-    let width, height;
-    function resizeCanvas() {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    const fontSize = 16;
-    const columns = Math.floor(width / fontSize);
-    const drops = Array(columns).fill(1);
-
-    function draw() {
-      ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
-      ctx.fillRect(0, 0, width, height);
-
-      ctx.fillStyle = "red";
-      ctx.font = fontSize + "px monospace";
-
-      for (let i = 0; i < drops.length; i++) {
-        const text = Math.random() > 0.5 ? "0" : "1";
-        const x = i * fontSize;
-        const y = drops[i] * fontSize;
-
-        ctx.fillText(text, x, y);
-
-        if (y > height && Math.random() > 0.975) {
-          drops[i] = 0;
-        }
-
-        drops[i]++;
-      }
-
-      requestAnimationFrame(draw);
-    }
-
-    draw();
-  </script>
-
-  <!-- Скрипт для открытия/закрытия окон -->
+  <!-- JS -->
   <script>
     function openPopup(id) {
       document.getElementById(id).style.display = "flex";
@@ -220,6 +187,44 @@
     function closePopup(id) {
       document.getElementById(id).style.display = "none";
     }
+
+    // Матрица
+    const canvas = document.getElementById("matrixCanvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const letters = "01XO";
+    const fontSize = 16;
+    const columns = canvas.width / fontSize;
+    const drops = Array.from({ length: columns }, () => 1);
+
+    function drawMatrix() {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "red";
+      ctx.font = `${fontSize}px monospace`;
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = letters.charAt(Math.floor(Math.random() * letters.length));
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > canvas.height || Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+
+        drops[i]++;
+      }
+    }
+
+    setInterval(drawMatrix, 50);
+
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
   </script>
 </body>
 </html>
