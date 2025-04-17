@@ -8,6 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
   <style>
     body
+  <canvas id="bloodCanvas"></canvas>
     
     {
       margin: 0;
@@ -214,8 +215,10 @@
   position: fixed;
   top: 0;
   left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
   pointer-events: none;
-  z-index: -1; /* Вот это ключевое! */
 }
   }
 </style>
