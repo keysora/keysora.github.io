@@ -143,31 +143,37 @@
       Welcome to the realm of Chimera. This platform brings you closer to the fusion of myth and machine.
     </p>
   </div>
+<!-- КНОПКИ -->
+<a href="#" class="menu-item" onclick="openPopup('work-popup')">WORK</a>
+<a href="#" class="menu-item" onclick="openPopup('news-popup')">NEWS</a>
 
   <!-- Popup WORK -->
-  <div id="popup1" class="popup">
-    <div class="popup-content">
-      <p>This is the WORK popup. Here you can place adaptive, scalable content that stays inside the frame.</p>
-      <button class="close-btn" onclick="closePopup('popup1')">Close</button>
+ <div class="popup" id="work-popup">
+  <div class="popup-content">
+    <div>
+      <p>Здесь находится текст для раздела WORK. Он может быть коротким или длинным.</p>
     </div>
+    <button class="close-btn" onclick="closePopup('work-popup')">Close</button>
   </div>
+</div>
 
-  <!-- Popup NEWS -->
-  <div id="popup2" class="popup">
-    <div class="popup-content">
-      <p>This is the NEWS popup. This text also adapts to resizing and stays within its container.</p>
-      <button class="close-btn" onclick="closePopup('popup2')">Close</button>
+<!-- POPUP NEWS -->
+<div class="popup" id="news-popup">
+  <div class="popup-content">
+    <div>
+      <p>Это текст для NEWS. Он также адаптируется по высоте окна.</p>
     </div>
+    <button class="close-btn" onclick="closePopup('news-popup')">Close</button>
   </div>
+</div>
 
-  <script>
-    function openPopup(id) {
-      document.getElementById(id).style.display = "flex";
-    }
-
-    function closePopup(id) {
-      document.getElementById(id).style.display = "none";
-    }
-  </script>
+<script>
+  function openPopup(id) {
+    document.getElementById(id).style.display = 'flex';
+  }
+  function closePopup(id) {
+    document.getElementById(id).style.display = 'none';
+  }
+</script>
 </body>
 </html>
