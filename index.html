@@ -5,12 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>chimera</title>
   <link rel="icon" href="" type="image/png" />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
   <style>
     body {
       margin: 0;
       background: black;
-      font-family: 'Orbitron', sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       color: white;
       overflow-x: hidden;
     }
@@ -62,7 +61,7 @@
 
     .content-container {
       max-width: 720px;
-      margin: 0 auto;
+      margin: 30px auto;
       padding: 20px;
       text-align: center;
       position: relative;
@@ -95,19 +94,23 @@
       overflow: auto;
       word-wrap: break-word;
       overflow-wrap: break-word;
-      font-family: 'Orbitron', sans-serif;
       letter-spacing: 0.05em;
       line-height: 1.6;
     }
 
     .close-btn {
       margin-top: 15px;
-      background: darkred;
-      color: white;
+      background: linear-gradient(145deg, #8B4513, #A0522D);
+      color: beige;
       padding: 10px 20px;
       border: none;
       border-radius: 10px;
       cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .close-btn:hover {
+      background: linear-gradient(145deg, #A0522D, #8B4513);
     }
 
     @media screen and (max-width: 600px) {
@@ -135,39 +138,37 @@
     <div class="menu-item" onclick="openPopup('popup2')">NEWS</div>
   </div>
 
+  <div class="content-container">
+    <h2>Welcome to Chimera</h2>
+    <p>This is your portal. More features coming soon...</p>
+  </div>
+
   <!-- Popup for WORK -->
-  <div class="popup" id="popup1">
+  <div id="popup1" class="popup">
     <div class="popup-content">
-      <p>Here you can describe your latest or ongoing work projects. Add anything from concepts to links or visuals. 🚀</p>
+      <h3>Work Information</h3>
+      <p>This section contains information about ongoing projects, opportunities, and collaboration requests.</p>
       <button class="close-btn" onclick="closePopup('popup1')">Close</button>
     </div>
   </div>
 
   <!-- Popup for NEWS -->
-  <div class="popup" id="popup2">
+  <div id="popup2" class="popup">
     <div class="popup-content">
-      <p>This is the news section. Share updates, announcements, or anything exciting happening. 📰</p>
+      <h3>Latest News</h3>
+      <p>Stay tuned for updates, release notes, and special announcements right here.</p>
       <button class="close-btn" onclick="closePopup('popup2')">Close</button>
     </div>
   </div>
 
   <script>
     function openPopup(id) {
-      document.getElementById(id).style.display = 'flex';
+      document.getElementById(id).style.display = "flex";
     }
 
     function closePopup(id) {
-      document.getElementById(id).style.display = 'none';
+      document.getElementById(id).style.display = "none";
     }
-
-    // Optional: close popup on outside click
-    window.addEventListener('click', function(e) {
-      document.querySelectorAll('.popup').forEach(popup => {
-        if (e.target === popup) {
-          popup.style.display = 'none';
-        }
-      });
-    });
   </script>
 </body>
 </html>
