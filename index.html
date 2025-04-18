@@ -1,174 +1,61 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>chimera</title>
-  <link rel="icon" href="" type="image/png" />  <!-- сюда картиночка фавикона линк на png -->
-  <style>
-    body {
-      margin: 0;
-      background: black;
-      font-family: 'Segoe UI', sans-serif;
-      color: white;
-      overflow-x: hidden;
-    }
-
-    .header {
-      background: black;
-      text-align: center;
-      padding: 20px 0 10px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .avatar {
-      width: 150px;
-      height: 150px;
-      object-fit: cover;
-      border-radius: 50%;
-    }
-
-    .menu-container {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      padding: 20px 0;
-      background: linear-gradient(to bottom, #1a1a1a, #3b2f2f);
-      position: relative;
-      z-index: 1;
-      flex-wrap: wrap;
-    }
-
-    .menu-item {
-      width: 140px;
-      background: linear-gradient(145deg, #8B4513, #A0522D);
-      border: 2px solid #654321;
-      border-radius: 15px 15px 40px 40px;
-      padding: 15px;
-      text-align: center;
-      font-size: 1rem;
-      text-decoration: none;
-      color: beige;
-      transition: 0.3s ease;
-    }
-
-    .menu-item:hover {
-      transform: scale(1.05);
-      background: linear-gradient(145deg, #A0522D, #8B4513);
-      cursor: pointer;
-    }
-
-    .content-container {
-      max-width: 720px;
-      margin: 30px auto;
-      padding: 20px;
-      text-align: center;
-      position: relative;
-      z-index: 1;
-      background: rgba(0, 0, 0, 0.4);
-      border-radius: 15px;
-    }
-
-    .popup {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.8);
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    .popup-content {
-      background: #2c2c2c;
-      padding: 30px;
-      border-radius: 15px;
-      text-align: center;
-      color: beige;
-      max-width: 90vw;
-      max-height: 80vh;
-      overflow: auto;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-      letter-spacing: 0.05em;
-      line-height: 1.6;
-    }
-
-    .close-btn {
-      margin-top: 15px;
-      background: linear-gradient(145deg, #8B4513, #A0522D);
-      color: beige;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    .close-btn:hover {
-      background: linear-gradient(145deg, #A0522D, #8B4513);
-    }
-
-    @media screen and (max-width: 600px) {
-      .menu-container {
-        flex-direction: column;
-        align-items: center;
-      }
-
-      .menu-item {
-        width: 80%;
-      }
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Аптека — Админ Панель</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <div class="header">
-    <img src="https://i.giphy.com/NdfmEYiiMpt6UwAeWs.webp" alt="Top Avatar" class="avatar" />  <!-- ава пиздата но можно поменять -->
+<body class="bg-gray-900 text-white font-sans min-h-screen">
+
+  <!-- Балансы -->
+  <div class="flex justify-end space-x-6 p-4 bg-gray-800 text-sm">
+    <div>LTC: 0.543</div>
+    <div>USDT: 1,200.00</div>
+    <div>BTC: 0.025</div>
   </div>
 
-  <div class="menu-container">
-    <a href="https://example.com/bot" class="menu-item" target="_blank">BOT</a> <!-- линк на себя вместо примера-->
-    <a href="https://example.com/chat" class="menu-item" target="_blank">CHAT</a> <!-- линк на себя вместо примера-->
-    <a href="https://example.com/operator" class="menu-item" target="_blank">OPERATOR</a> <!-- линк на себя вместо примера-->
-    <div class="menu-item" onclick="openPopup('popup1')">WORK</div>
-    <div class="menu-item" onclick="openPopup('popup2')">NEWS</div>
-  </div>
-
-  <div class="content-container">
-    <h2>Welcome to Chimera</h2>
-    <p>ахуенный сайт блаблабла...</p>
-  </div>
-
-<!-- сюда за работу инфу-->
-  <div id="popup1" class="popup">
-    <div class="popup-content">
-      <h3>Work Information</h3>
-      <p>работа всем рататата.</p>
-      <button class="close-btn" onclick="closePopup('popup1')">Close</button>
+  <!-- Верхняя панель -->
+  <div class="flex justify-between items-center px-6 py-4 bg-gray-850 border-b border-gray-700">
+    <div class="text-lg font-semibold">👤 Аккаунт: apteka_admin</div>
+    <div class="flex items-center space-x-4">
+      <button class="text-sm hover:underline">Настройки</button>
+      <button class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm">Выйти</button>
     </div>
   </div>
 
-  <!-- сюда новости ебаные  -->
-  <div id="popup2" class="popup">
-    <div class="popup-content">
-      <h3>Latest News</h3>
-      <p>блаблабла я пизда.</p>
-      <button class="close-btn" onclick="closePopup('popup2')">Close</button>
+  <!-- Меню -->
+  <nav class="bg-gray-800 p-4 flex flex-wrap gap-6 text-sm">
+    <div class="cursor-pointer hover:underline">ГЛАВНАЯ</div>
+    <div class="cursor-pointer hover:underline">МАГАЗИНЫ ▾</div>
+    <div class="cursor-pointer hover:underline">БОТЫ/КАНАЛЫ ▾</div>
+    <div class="cursor-pointer hover:underline">СОТРУДНИКИ</div>
+    <div class="cursor-pointer hover:underline">КЛИЕНТЫ</div>
+    <div class="cursor-pointer hover:underline">ПОКУПКИ</div>
+    <div class="cursor-pointer hover:underline">ПОПОЛНЕНИЯ БАЛАНСА</div>
+    <div class="cursor-pointer hover:underline">ДОБАВИТЬ АДРЕСА</div>
+    <div class="cursor-pointer hover:underline">РАССЫЛКИ</div>
+    <div class="cursor-pointer hover:underline">ОБРАТНАЯ СВЯЗЬ (0)</div>
+    <div class="cursor-pointer hover:underline">СКЛАД ▾</div>
+    <div class="cursor-pointer hover:underline">МАРКЕТИНГ ▾</div>
+    <div class="cursor-pointer hover:underline">САЙТЫ ▾</div>
+    <div class="cursor-pointer hover:underline">ДОПОЛНИТЕЛЬНО ▾</div>
+    <div class="cursor-pointer hover:underline">ЗАДАТЬ ВОПРОС</div>
+  </nav>
+
+  <!-- Хлебные крошки -->
+  <div class="px-6 py-4 text-sm text-gray-300">
+    Dashboard / <span class="text-white">Сотрудники</span>
+  </div>
+
+  <!-- Контент -->
+  <div class="px-6 py-4">
+    <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+      <h2 class="text-xl font-bold mb-4">Список сотрудников</h2>
+      <p class="text-gray-400">Тут будет таблица с сотрудниками или нужный функционал.</p>
     </div>
   </div>
 
-  <script>
-    function openPopup(id) {
-      document.getElementById(id).style.display = "flex";
-    }
-
-    function closePopup(id) {
-      document.getElementById(id).style.display = "none";
-    }
-  </script>
 </body>
 </html>
