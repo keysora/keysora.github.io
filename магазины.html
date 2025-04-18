@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Все магазины</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+  <div class="p-6">
+    <h1 class="text-2xl font-bold mb-4">Все магазины</h1>
+
+    <!-- Пример таблицы магазинов -->
+    <table class="w-full bg-gray-800 rounded overflow-hidden">
+      <thead class="bg-gray-700 text-left text-sm uppercase tracking-wider text-gray-300">
+        <tr>
+          <th class="px-4 py-2">Название</th>
+          <th class="px-4 py-2">Статус</th>
+          <th class="px-4 py-2">Владелец</th>
+          <th class="px-4 py-2">Баланс</th>
+          <th class="px-4 py-2">Действия</th>
+        </tr>
+      </thead>
+      <tbody class="text-sm">
+        <tr class="border-t border-gray-700 hover:bg-gray-700">
+          <td class="px-4 py-2">Магазин #1</td>
+          <td class="px-4 py-2 text-green-400">Активен</td>
+          <td class="px-4 py-2">@owner1</td>
+          <td class="px-4 py-2">USDT 420.00</td>
+          <td class="px-4 py-2"><a href=\"#\" class=\"text-blue-400 hover:underline\">Редактировать</a></td>
+        </tr>
+        <!-- Добавляй сколько нужно строк -->
+      </tbody>
+    </table>
+
+  </div>
+</body>
+</html>
