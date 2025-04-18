@@ -38,6 +38,7 @@
       background: linear-gradient(to bottom, #1a1a1a, #3b2f2f);
       position: relative;
       z-index: 1;
+      flex-wrap: wrap;
     }
 
     .menu-item {
@@ -91,10 +92,12 @@
       color: beige;
       max-width: 90vw;
       max-height: 80vh;
+      width: 90vw;
+      height: 80vh;
       overflow: auto;
+      box-sizing: border-box;
       word-wrap: break-word;
       overflow-wrap: break-word;
-      box-sizing: border-box;
       font-family: 'Orbitron', sans-serif;
       letter-spacing: 0.05em;
       line-height: 1.6;
@@ -128,17 +131,43 @@
   </div>
 
   <div class="menu-container">
-    <a href="#" class="menu-item">BOT</a>
-    <a href="#" class="menu-item">CHAT</a>
-    <a href="#" class="menu-item">OPERATOR</a>
+    <a href="https://example.com/bot" class="menu-item" target="_blank">BOT</a>
+    <a href="https://example.com/chat" class="menu-item" target="_blank">CHAT</a>
+    <a href="https://example.com/operator" class="menu-item" target="_blank">OPERATOR</a>
     <div class="menu-item" onclick="openPopup('popup1')">WORK</div>
     <div class="menu-item" onclick="openPopup('popup2')">NEWS</div>
   </div>
 
   <div class="content-container">
     <p>
-      Welcome to the chimera blablabla sosihuysalad.
+      Welcome to the realm of Chimera. This platform brings you closer to the fusion of myth and machine.
     </p>
   </div>
+
+  <!-- Popup WORK -->
+  <div id="popup1" class="popup">
+    <div class="popup-content">
+      <p>This is the WORK popup. Here you can place adaptive, scalable content that stays inside the frame.</p>
+      <button class="close-btn" onclick="closePopup('popup1')">Close</button>
+    </div>
+  </div>
+
+  <!-- Popup NEWS -->
+  <div id="popup2" class="popup">
+    <div class="popup-content">
+      <p>This is the NEWS popup. This text also adapts to resizing and stays within its container.</p>
+      <button class="close-btn" onclick="closePopup('popup2')">Close</button>
+    </div>
+  </div>
+
+  <script>
+    function openPopup(id) {
+      document.getElementById(id).style.display = "flex";
+    }
+
+    function closePopup(id) {
+      document.getElementById(id).style.display = "none";
+    }
+  </script>
 </body>
 </html>
