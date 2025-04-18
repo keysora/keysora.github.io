@@ -1,15 +1,18 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chimera</title>
+  <link rel="icon" href="" type="image/png" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
   <style>
     body {
       margin: 0;
       background: black;
       font-family: 'Orbitron', sans-serif;
-      color: #f5f5dc;
+      color: beige;
       overflow-x: hidden;
     }
 
@@ -19,38 +22,51 @@
     }
 
     .avatar {
-      width: 160px;
-      height: 160px;
-      border-radius: 50%;
+      width: 150px;
+      height: 150px;
       object-fit: cover;
-      pointer-events: none; /* makes it non-clickable */
+      border-radius: 50%;
     }
 
     .menu-container {
       display: flex;
       justify-content: center;
       gap: 20px;
-      padding: 20px;
-      background: linear-gradient(to bottom, #5e2b1c, #000);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+      flex-wrap: wrap;
+      background: linear-gradient(to bottom, #3e2c1e, #1b1a17);
+      padding: 20px 10px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
       position: relative;
+      z-index: 2;
     }
 
     .menu-item {
-      background: linear-gradient(135deg, #d2691e, #000);
-      color: #f5f5dc;
       padding: 15px 25px;
-      border-radius: 20px 20px 0 0;
+      border-radius: 15px;
+      background: linear-gradient(145deg, #6b4423, #000);
+      color: beige;
       text-decoration: none;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.6);
+      transform: perspective(500px) rotateX(15deg);
       transition: 0.3s ease;
-      transform: perspective(600px) rotateX(15deg);
     }
 
     .menu-item:hover {
-      transform: scale(1.05);
+      transform: perspective(500px) rotateX(5deg) scale(1.05);
       cursor: pointer;
-      background: linear-gradient(135deg, #8b4513, #000);
+      background: darkorange;
+    }
+
+    .content-text {
+      max-width: 90vw;
+      margin: 40px auto;
+      padding: 20px;
+      background: rgba(30, 20, 10, 0.5);
+      border-radius: 10px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: beige;
     }
 
     .popup {
@@ -60,30 +76,32 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(0, 0, 0, 0.85);
+      background: rgba(0, 0, 0, 0.8);
       justify-content: center;
       align-items: center;
       z-index: 1000;
     }
 
     .popup-content {
-      background: #1c1c1c;
+      background: #222;
       padding: 30px;
       border-radius: 15px;
       text-align: center;
-      color: #f5f5dc;
+      color: beige;
       max-width: 90vw;
       max-height: 80vh;
       overflow: auto;
-      font-family: Arial, sans-serif;
-      font-size: 1rem;
-      line-height: 1.6;
-      letter-spacing: 0.5px;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      box-sizing: border-box;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.1rem;
+      line-height: 1.7;
     }
 
     .close-btn {
       margin-top: 15px;
-      background: #8b0000;
+      background: darkred;
       color: white;
       padding: 10px 20px;
       border: none;
@@ -91,25 +109,19 @@
       cursor: pointer;
     }
 
-    .bite {
-      position: absolute;
-      width: 120px;
-      height: 120px;
-      background: url('https://i.ibb.co/gvYdnTV/bite.png') center/contain no-repeat;
-      animation: biteAnim 1s ease forwards;
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
       pointer-events: none;
-    }
-
-    @keyframes biteAnim {
-      0% { transform: scale(0); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 0; }
+      z-index: 1;
     }
   </style>
 </head>
 <body>
+  <canvas id="rootCanvas"></canvas>
   <div class="header">
-    <img src="https://i.giphy.com/NdfmEYiiMpt6UwAeWs.webp" alt="Avatar" class="avatar" />
+    <img src="https://i.giphy.com/NdfmEYiiMpt6UwAeWs.webp" alt="Top Avatar" class="avatar" />
   </div>
 
   <div class="menu-container">
@@ -120,16 +132,20 @@
     <div class="menu-item" onclick="openPopup('popup2')">News</div>
   </div>
 
+  <div class="content-text">
+    This is a placeholder text block that adapts to screen size and stays within the main layout.
+  </div>
+
   <div class="popup" id="popup1">
     <div class="popup-content">
-      <p>Work popup content appears here. Text adjusts with window size.</p>
+      <p>This is popup #1 with updated font and spacing.</p>
       <button class="close-btn" onclick="closePopup('popup1')">Close</button>
     </div>
   </div>
 
   <div class="popup" id="popup2">
     <div class="popup-content">
-      <p>News popup content appears here. Text adjusts with window size.</p>
+      <p>This is popup #2 with updated font and spacing.</p>
       <button class="close-btn" onclick="closePopup('popup2')">Close</button>
     </div>
   </div>
@@ -141,22 +157,51 @@
     function closePopup(id) {
       document.getElementById(id).style.display = 'none';
     }
+  </script>
 
-    function spawnBite() {
-      const bite = document.createElement('div');
-      bite.classList.add('bite');
-      bite.style.top = Math.random() * window.innerHeight + 'px';
-      bite.style.left = Math.random() * window.innerWidth + 'px';
-      document.body.appendChild(bite);
+  <script>
+    const canvas = document.getElementById("rootCanvas");
+    const ctx = canvas.getContext("2d");
+    let width, height;
 
-      setTimeout(() => {
-        bite.remove();
-      }, 1000);
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    let roots = [];
+    function createRoot() {
+      roots.push({
+        x: Math.random() * width,
+        y: 0,
+        length: 0,
+        maxLength: Math.random() * 100 + 50,
+        speed: Math.random() * 2 + 0.5
+      });
     }
 
-    setInterval(() => {
-      if (Math.random() > 0.7) spawnBite();
-    }, 1500);
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+      roots.forEach((r, i) => {
+        r.length += r.speed;
+        ctx.beginPath();
+        ctx.moveTo(r.x, r.y);
+        ctx.lineTo(r.x, r.y + r.length);
+        ctx.strokeStyle = "darkgreen";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        if (r.length >= r.maxLength) {
+          roots.splice(i, 1);
+        }
+      });
+      requestAnimationFrame(draw);
+    }
+
+    setInterval(createRoot, 800);
+    draw();
   </script>
 </body>
 </html>
