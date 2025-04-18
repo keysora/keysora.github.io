@@ -2,11 +2,11 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Админ Панель Аптеки</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .group:hover .dropdown {
+    .group:hover .dropdown, .dropdown:hover {
       display: block;
     }
   </style>
@@ -14,14 +14,14 @@
 <body class="bg-gray-900 text-white font-sans min-h-screen">
 
   <!-- Балансы -->
-  <div class="flex justify-end space-x-6 p-4 bg-gray-800 text-sm">
+  <div class="flex flex-col sm:flex-row justify-end sm:space-x-6 p-4 bg-gray-800 text-sm text-right">
     <div>LTC: 0.543</div>
     <div>USDT: 1,200.00</div>
     <div>BTC: 0.025</div>
   </div>
 
   <!-- Верхняя панель -->
-  <div class="flex justify-between items-center px-6 py-4 bg-gray-850 border-b border-gray-700">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center px-6 py-4 bg-gray-850 border-b border-gray-700 gap-2 sm:gap-0">
     <div class="text-lg font-semibold">👤 Аккаунт: apteka_admin</div>
     <div class="flex items-center space-x-4">
       <button class="text-sm hover:underline">Настройки</button>
@@ -30,21 +30,20 @@
   </div>
 
   <!-- Главное меню -->
-  <nav class="bg-gray-800 p-4 flex flex-wrap gap-6 text-sm relative">
+  <nav class="bg-gray-800 p-4 flex flex-wrap gap-4 sm:gap-6 text-sm relative z-40">
 
-    <div class="cursor-pointer hover:underline">ГЛАВНАЯ</div>
+    <a href="#" class="hover:underline">ГЛАВНАЯ</a>
 
-    <!-- МАГАЗИНЫ с выпадающим -->
+    <!-- МАГАЗИНЫ -->
     <div class="relative group">
       <div class="cursor-pointer hover:underline">МАГАЗИНЫ ▾</div>
       <div class="dropdown absolute mt-2 bg-white text-black rounded shadow-lg w-56 hidden z-50">
         <a href="#" class="block px-4 py-2 hover:bg-gray-100">ВСЕ МАГАЗИНЫ</a>
         <a href="#" class="block px-4 py-2 hover:bg-gray-100">ВЫВОД СРЕДСТВ</a>
-        <a href="#" class="block px-4 py-2 hover:bg-gray-100">ПУТЬ К СТРАНИЦЕ ВЫВОДА</a>
       </div>
     </div>
 
-    <!-- БОТЫ/КАНАЛЫ с выпадающим -->
+    <!-- БОТЫ/КАНАЛЫ -->
     <div class="relative group">
       <div class="cursor-pointer hover:underline">БОТЫ/КАНАЛЫ ▾</div>
       <div class="dropdown absolute mt-2 bg-white text-black rounded shadow-lg w-64 hidden z-50">
@@ -57,33 +56,56 @@
       </div>
     </div>
 
-    <!-- Остальные -->
-    <div class="cursor-pointer hover:underline">СОТРУДНИКИ</div>
-    <div class="cursor-pointer hover:underline">КЛИЕНТЫ</div>
-    <div class="cursor-pointer hover:underline">ПОКУПКИ</div>
-    <div class="cursor-pointer hover:underline">ПОПОЛНЕНИЯ БАЛАНСА</div>
-    <div class="cursor-pointer hover:underline">ДОБАВИТЬ АДРЕСА</div>
-    <div class="cursor-pointer hover:underline">РАССЫЛКИ</div>
-    <div class="cursor-pointer hover:underline">ОБРАТНАЯ СВЯЗЬ (0)</div>
-    <div class="cursor-pointer hover:underline">СКЛАД ▾</div>
-    <div class="cursor-pointer hover:underline">МАРКЕТИНГ ▾</div>
-    <div class="cursor-pointer hover:underline">САЙТЫ ▾</div>
-    <div class="cursor-pointer hover:underline">ДОПОЛНИТЕЛЬНО ▾</div>
-    <div class="cursor-pointer hover:underline">ЗАДАТЬ ВОПРОС</div>
-  </nav>
-
-  <!-- Хлебные крошки -->
-  <div class="px-6 py-4 text-sm text-gray-300">
-    Dashboard / <span class="text-white">Сотрудники</span>
-  </div>
-
-  <!-- Контент -->
-  <div class="px-6 py-4">
-    <div class="bg-gray-800 p-6 rounded-lg shadow-md">
-      <h2 class="text-xl font-bold mb-4">Список сотрудников</h2>
-      <p class="text-gray-400">Здесь будет список сотрудников с действиями.</p>
+    <!-- СКЛАД -->
+    <div class="relative group">
+      <div class="cursor-pointer hover:underline">СКЛАД ▾</div>
+      <div class="dropdown absolute mt-2 bg-white text-black rounded shadow-lg w-64 hidden z-50">
+        <a href="#" class="block px-4 py-2 hover:bg-gray-100">КУРЬЕРЫ</a>
+        <a href="#" class="block px-4 py-2 hover:bg-gray-100">ГОРОДА</a>
+        <a href="#" class="block px-4 py-2 hover:bg-gray-100">РАЙОНЫ</a>
+        <a href="#" class="block px-4 py-2 hover:bg-gray-100">ГРУППЫ ТОВАРОВ</a>
+        <a href="#" class="block px-4 py-2 hover:bg-gray-100">ВИДЫ ТОВАРОВ</a>
+        <a href="#" class="block px-4 py-2 hover:bg-gray-100">МК</a>
+        <a href="#" class="block px-4 py-2 hover:bg-gray-100">АДРЕСА</a>
+        <a href="#" class="block px-4 py-2 hover:bg-gray-100">ИСТОРИЯ ИЗМЕНЕНИЯ СКЛАДА</a>
+        <a href="#" class="block px-4 py-2 hover:bg-gray-100">УВЕДОМЛЕНИЯ ПО ОСТАТКАМ</a>
+      </div>
     </div>
-  </div>
+
+    <!-- МАРКЕТИНГ -->
+    <div class="relative group">
+      <div class="cursor-pointer hover:underline">МАРКЕТИНГ ▾</div>
+      <div class="dropdown absolute mt-2 bg-white text-black rounded shadow-lg w-64 hidden z-50">
+        <a href="#" class="block px-4 py-2 hover:bg-gray-100">ОТЗЫВЫ</a>
+        <a href="#" class="block px-4 py-2 hover:bg-gray-100">ПРОМО-АКЦИИ</a>
+        <a href="#" class="block px-4 py-2 hover:bg-gray-100">НАКОПИТЕЛЬНЫЕ СКИДКИ</a>
+        <a href="#" class="block px-4 py-2 hover:bg-gray-100">ПРОМОКОДЫ</a>
+        <a href="#" class="block px-4 py-2 hover:bg-gray-100">РАССЫЛКИ</a>
+        <a href="#" class="block px-4 py-2 hover:bg-gray-100">АВТО-ПЕРЕСЫЛКИ</a>
+      </div>
+    </div>
+
+    <!-- САЙТЫ -->
+    <div class="relative group">
+      <div class="cursor-pointer hover:underline">САЙТЫ ▾</div>
+      <div class="dropdown absolute mt-2 bg-white text-black rounded shadow-lg w-64 hidden z-50">
+        <a href="#" class="block px-4 py-2 hover:bg-gray-100">ДОМЕНЫ</a>
+        <a href="#" class="block px-4 py-2 hover:bg-gray-100">СТРАНИЦЫ</a>
+        <a href="#" class="block px-4 py-2 hover:bg-gray-100">НОВОСТИ</a>
+      </div>
+    </div>
+
+    <!-- Остальные кнопки без выпадашек -->
+    <a href="#" class="hover:underline">СОТРУДНИКИ</a>
+    <a href="#" class="hover:underline">КЛИЕНТЫ</a>
+    <a href="#" class="hover:underline">ПОКУПКИ</a>
+    <a href="#" class="hover:underline">ПОПОЛНЕНИЯ БАЛАНСА</a>
+    <a href="#" class="hover:underline">ДОБАВИТЬ АДРЕСА</a>
+    <a href="#" class="hover:underline">РАССЫЛКИ</a>
+    <a href="#" class="hover:underline">ОБРАТНАЯ СВЯЗЬ (0)</a>
+    <a href="#" class="hover:underline">ДОПОЛНИТЕЛЬНО</a>
+    <a href="#" class="hover:underline">ЗАДАТЬ ВОПРОС</a>
+  </nav>
 
 </body>
 </html>
