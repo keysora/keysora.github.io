@@ -3,85 +3,54 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>METFOX</title>
-  <link rel="icon" href="https://i.ibb.co/tM4CLRrV/2.png" type="image/png" />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+  <title>Chimera</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
     body {
-      font-family: 'Orbitron', sans-serif;
+      margin: 0;
       background: black;
-      color: white;
+      font-family: 'Orbitron', sans-serif;
+      color: #f5f5dc;
       overflow-x: hidden;
     }
 
-    #matrixCanvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-    }
-
-    .header, .bottom-avatar-container {
-      position: relative;
-      z-index: 1;
+    .header {
       text-align: center;
-      padding: 20px 0 5px;
+      padding: 20px 0 10px;
     }
 
     .avatar {
-      width: 150px;
-      height: 150px;
-      object-fit: cover;
+      width: 160px;
+      height: 160px;
       border-radius: 50%;
-    }
-
-    .intro-text {
-      position: relative;
-      z-index: 1;
-      text-align: center;
-      margin-top: 5px;
-      margin-bottom: 20px;
-      font-size: 1.5rem;
-      padding: 0 10px;
+      object-fit: cover;
+      pointer-events: none; /* makes it non-clickable */
     }
 
     .menu-container {
-      position: relative;
-      z-index: 1;
-      background: url('https://cdna.artstation.com/p/assets/images/images/058/834/064/original/kayan-102.gif?1675085766') center/cover no-repeat;
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 10px;
-      padding: 5px 20px;
+      justify-content: center;
+      gap: 20px;
+      padding: 20px;
+      background: linear-gradient(to bottom, #5e2b1c, #000);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+      position: relative;
     }
 
     .menu-item {
-      width: 90%;
-      max-width: 500px;
-      background: linear-gradient(135deg, red, black);
-      border-radius: 20px;
-      padding: 15px;
-      text-align: center;
-      font-size: 1.2rem;
+      background: linear-gradient(135deg, #d2691e, #000);
+      color: #f5f5dc;
+      padding: 15px 25px;
+      border-radius: 20px 20px 0 0;
       text-decoration: none;
-      color: white;
+      font-size: 1.1rem;
       transition: 0.3s ease;
+      transform: perspective(600px) rotateX(15deg);
     }
 
     .menu-item:hover {
-      transform: scale(1.03);
+      transform: scale(1.05);
       cursor: pointer;
+      background: linear-gradient(135deg, #8b4513, #000);
     }
 
     .popup {
@@ -91,33 +60,30 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.85);
       justify-content: center;
       align-items: center;
       z-index: 1000;
     }
 
-   .popup-content {
-  background: #111;
-  padding: 30px;
-  border-radius: 15px;
-  text-align: center;
-  color: white;
-  max-width: 90vw;
-  max-height: 80vh;
-  overflow: auto;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  box-sizing: border-box;
-  font-family: 'Orbitron', sans-serif;
-  font-size: 1.1rem;
-  line-height: 1.6;
-  letter-spacing: 0.7px;
-}
+    .popup-content {
+      background: #1c1c1c;
+      padding: 30px;
+      border-radius: 15px;
+      text-align: center;
+      color: #f5f5dc;
+      max-width: 90vw;
+      max-height: 80vh;
+      overflow: auto;
+      font-family: Arial, sans-serif;
+      font-size: 1rem;
+      line-height: 1.6;
+      letter-spacing: 0.5px;
+    }
 
     .close-btn {
       margin-top: 15px;
-      background: red;
+      background: #8b0000;
       color: white;
       padding: 10px 20px;
       border: none;
@@ -125,140 +91,72 @@
       cursor: pointer;
     }
 
-    @media screen and (max-width: 600px) {
-      .intro-text {
-        font-size: 1.2rem;
-      }
+    .bite {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      background: url('https://i.ibb.co/gvYdnTV/bite.png') center/contain no-repeat;
+      animation: biteAnim 1s ease forwards;
+      pointer-events: none;
+    }
 
-      .avatar {
-        width: 120px;
-        height: 120px;
-      }
+    @keyframes biteAnim {
+      0% { transform: scale(0); opacity: 0; }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(1); opacity: 0; }
     }
   </style>
 </head>
 <body>
-  <!-- Матрица -->
-  <canvas id="matrixCanvas"></canvas>
-
-  <!-- Верхний аватар -->
   <div class="header">
-    <a href="https://ibb.co/xSD5FZTx" target="_blank">
-    <img src="https://i.ibb.co/tM4CLRrV/2.png" alt="Top Avatar" class="avatar" />
-  </a>
+    <img src="https://i.giphy.com/NdfmEYiiMpt6UwAeWs.webp" alt="Avatar" class="avatar" />
   </div>
 
-  <!-- Текст -->
-  <div class="intro-text">WELCOME BACK!</div>
-
-  <!-- Меню -->
   <div class="menu-container">
-    <a href="https://example.com/link1" class="menu-item">bot</a>
-    <a href="https://example.com/link2" class="menu-item">chat</a>
-    <div class="menu-item" onclick="openPopup('popup1')">work</div>
-    <div class="menu-item" onclick="openPopup('popup2')">promotions</div>
+    <a href="#" class="menu-item">Home</a>
+    <a href="#" class="menu-item">About</a>
+    <a href="#" class="menu-item">Projects</a>
+    <div class="menu-item" onclick="openPopup('popup1')">Work</div>
+    <div class="menu-item" onclick="openPopup('popup2')">News</div>
   </div>
 
-  <!-- Нижний аватар -->
-  <div class="bottom-avatar-container">
-       <a href="https://ibb.co/xSD5FZTx" target="_blank">
-    <img src="https://i.ibb.co/tM4CLRrV/2.png" alt=“Bottom Avatar" class="avatar" />
-  </a>
-  </div>
-
-  <!-- Попапы -->
   <div class="popup" id="popup1">
     <div class="popup-content">
-      <p><b>Option 1 - Street Artist</b>🎨</p>
-<p>We pay people for tagging us, spray metfox.cc get $5 balance on bot or wallet</p>
-<br>
-      <br>
-<p><b>Option2 - Courier</b>📦</p> 
-<p>Deposits starts from $150, work in your city and country, earn from $2.5K, for more info contact @deepdotcat:matrix.org or support
-</p>
-      <button class="close-btn" onclick="closePopup('popup1')">close</button>
+      <p>Work popup content appears here. Text adjusts with window size.</p>
+      <button class="close-btn" onclick="closePopup('popup1')">Close</button>
     </div>
   </div>
 
   <div class="popup" id="popup2">
     <div class="popup-content">
-      <p><b>🔥CURRENT PROMOS🔥</b><br><br>
-every 7th purchase - $50 <br><br>
-every feedback 3+ stars - $1 <br><br>
-        every referal purchase - 5%<br><br>
-every graffiti METFOX.CC - $5</p>
-      <button class="close-btn" onclick="closePopup('popup2')">close</button>
+      <p>News popup content appears here. Text adjusts with window size.</p>
+      <button class="close-btn" onclick="closePopup('popup2')">Close</button>
     </div>
   </div>
 
-  <!-- JS -->
   <script>
     function openPopup(id) {
-      document.getElementById(id).style.display = "flex";
+      document.getElementById(id).style.display = 'flex';
     }
-
     function closePopup(id) {
-      document.getElementById(id).style.display = "none";
+      document.getElementById(id).style.display = 'none';
     }
 
-    // Матрица с вспышками
-    const canvas = document.getElementById("matrixCanvas");
-    const ctx = canvas.getContext("2d");
+    function spawnBite() {
+      const bite = document.createElement('div');
+      bite.classList.add('bite');
+      bite.style.top = Math.random() * window.innerHeight + 'px';
+      bite.style.left = Math.random() * window.innerWidth + 'px';
+      document.body.appendChild(bite);
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const letters = "01METFOX";
-    const fontSize = 16;
-    const columns = canvas.width / fontSize;
-    const drops = Array.from({ length: columns }, () => 1);
-
-    const flashes = []; // Массив для хранения вспышек
-
-    function createFlash() {
-      const flash = {
-        x: Math.floor(Math.random() * columns), // случайная позиция по X
-        y: 0, // начинается с верхней части
-        speed: Math.random() * 2 + 2, // скорость падения
-        length: Math.floor(Math.random() * 10) + 5, // длина падающей строки
-        interval: Math.random() * 200 + 300 // интервал между вспышками
-      };
-      flashes.push(flash);
+      setTimeout(() => {
+        bite.remove();
+      }, 1000);
     }
 
-    function drawMatrix() {
-      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.fillStyle = "red";
-      ctx.font = `${fontSize}px monospace`;
-
-      // Генерация вспышек
-      if (Math.random() < 0.10) { // вероятность появления вспышки
-        createFlash();
-      }
-
-      // Отрисовка вспышек
-      flashes.forEach((flash, index) => {
-        for (let i = 0; i < flash.length; i++) {
-          const text = letters.charAt(Math.floor(Math.random() * letters.length));
-          ctx.fillText(text, flash.x * fontSize, flash.y * fontSize);
-
-          flash.y += flash.speed; // движение вниз
-          if (flash.y * fontSize > canvas.height) {
-            flashes.splice(index, 1); // Удаление вспышки, если она дошла до конца
-          }
-        }
-      });
-    }
-
-    setInterval(drawMatrix, 50); // Настройка интервала для отрисовки
-
-    // Обновление канваса при изменении размера окна
-    window.addEventListener("resize", () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
+    setInterval(() => {
+      if (Math.random() > 0.7) spawnBite();
+    }, 1500);
   </script>
 </body>
 </html>
