@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chimera</title>
+  <title>OX</title>
   <link rel="icon" href="" type="image/png" />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
   <style>
@@ -12,13 +11,24 @@
       margin: 0;
       background: black;
       font-family: 'Orbitron', sans-serif;
-      color: beige;
+      color: white;
       overflow-x: hidden;
     }
 
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
     .header {
+      background: black;
       text-align: center;
       padding: 20px 0 10px;
+      position: relative;
+      z-index: 1;
     }
 
     .avatar {
@@ -32,41 +42,40 @@
       display: flex;
       justify-content: center;
       gap: 20px;
-      flex-wrap: wrap;
-      background: linear-gradient(to bottom, #3e2c1e, #1b1a17);
-      padding: 20px 10px;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
+      padding: 20px 0;
+      background: linear-gradient(to bottom, #1a1a1a, #3b2f2f);
       position: relative;
-      z-index: 2;
+      z-index: 1;
     }
 
     .menu-item {
-      padding: 15px 25px;
-      border-radius: 15px;
-      background: linear-gradient(145deg, #6b4423, #000);
-      color: beige;
+      width: 140px;
+      background: linear-gradient(145deg, #8B4513, #A0522D);
+      border: 2px solid #654321;
+      border-radius: 15px 15px 40px 40px;
+      padding: 15px;
+      text-align: center;
+      font-size: 1rem;
       text-decoration: none;
-      font-size: 1.2rem;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.6);
-      transform: perspective(500px) rotateX(15deg);
+      color: beige;
       transition: 0.3s ease;
     }
 
     .menu-item:hover {
-      transform: perspective(500px) rotateX(5deg) scale(1.05);
+      transform: scale(1.05);
+      background: linear-gradient(145deg, #A0522D, #8B4513);
       cursor: pointer;
-      background: darkorange;
     }
 
-    .content-text {
-      max-width: 90vw;
-      margin: 40px auto;
+    .content-container {
+      max-width: 720px;
+      margin: 0 auto;
       padding: 20px;
-      background: rgba(30, 20, 10, 0.5);
-      border-radius: 10px;
-      font-size: 1.1rem;
-      line-height: 1.8;
-      color: beige;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 15px;
     }
 
     .popup {
@@ -83,7 +92,7 @@
     }
 
     .popup-content {
-      background: #222;
+      background: #2c2c2c;
       padding: 30px;
       border-radius: 15px;
       text-align: center;
@@ -95,8 +104,8 @@
       overflow-wrap: break-word;
       box-sizing: border-box;
       font-family: 'Orbitron', sans-serif;
-      font-size: 1.1rem;
-      line-height: 1.7;
+      letter-spacing: 0.05em;
+      line-height: 1.6;
     }
 
     .close-btn {
@@ -109,43 +118,49 @@
       cursor: pointer;
     }
 
-    canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      pointer-events: none;
-      z-index: 1;
+    @media screen and (max-width: 600px) {
+      .menu-container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .menu-item {
+        width: 80%;
+      }
     }
   </style>
 </head>
 <body>
   <canvas id="rootCanvas"></canvas>
+
   <div class="header">
     <img src="https://i.giphy.com/NdfmEYiiMpt6UwAeWs.webp" alt="Top Avatar" class="avatar" />
   </div>
 
   <div class="menu-container">
-    <a href="#" class="menu-item">Home</a>
-    <a href="#" class="menu-item">About</a>
-    <a href="#" class="menu-item">Projects</a>
+    <a href="#" class="menu-item">Bot</a>
+    <a href="#" class="menu-item">Chat</a>
+    <a href="#" class="menu-item">Map</a>
     <div class="menu-item" onclick="openPopup('popup1')">Work</div>
     <div class="menu-item" onclick="openPopup('popup2')">News</div>
   </div>
 
-  <div class="content-text">
-    This is a placeholder text block that adapts to screen size and stays within the main layout.
+  <div class="content-container">
+    <p>
+      Welcome to the realm of Chimera. This platform brings you closer to the fusion of myth and machine, where the digital meets the primal.
+    </p>
   </div>
 
   <div class="popup" id="popup1">
     <div class="popup-content">
-      <p>This is popup #1 with updated font and spacing.</p>
+      <p>This is Popup Window #1. Responsive and adaptive to screen size.</p>
       <button class="close-btn" onclick="closePopup('popup1')">Close</button>
     </div>
   </div>
 
   <div class="popup" id="popup2">
     <div class="popup-content">
-      <p>This is popup #2 with updated font and spacing.</p>
+      <p>This is Popup Window #2. Scrollable content and styled for readability.</p>
       <button class="close-btn" onclick="closePopup('popup2')">Close</button>
     </div>
   </div>
@@ -157,51 +172,48 @@
     function closePopup(id) {
       document.getElementById(id).style.display = 'none';
     }
-  </script>
 
-  <script>
+    // Root Growing Animation
     const canvas = document.getElementById("rootCanvas");
     const ctx = canvas.getContext("2d");
-    let width, height;
+    let w, h;
 
     function resizeCanvas() {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
     }
-    window.addEventListener("resize", resizeCanvas);
+
+    window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
-    let roots = [];
+    const roots = [];
     function createRoot() {
-      roots.push({
-        x: Math.random() * width,
-        y: 0,
-        length: 0,
-        maxLength: Math.random() * 100 + 50,
-        speed: Math.random() * 2 + 0.5
-      });
+      const x = Math.random() * w;
+      roots.push({ x, y: 0, life: 0, max: 100 + Math.random() * 50, path: [] });
     }
 
-    function draw() {
-      ctx.clearRect(0, 0, width, height);
+    function animateRoots() {
+      ctx.clearRect(0, 0, w, h);
       roots.forEach((r, i) => {
-        r.length += r.speed;
+        r.life++;
+        r.y += 1 + Math.random() * 2;
+        r.path.push({ x: r.x + Math.sin(r.life / 10) * 5, y: r.y });
+
         ctx.beginPath();
-        ctx.moveTo(r.x, r.y);
-        ctx.lineTo(r.x, r.y + r.length);
-        ctx.strokeStyle = "darkgreen";
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = `rgba(${100 + Math.random()*50}, ${50 + Math.random()*100}, 50, ${1 - r.life/r.max})`;
+        ctx.lineWidth = 2 + Math.random();
+        ctx.moveTo(r.x, 0);
+        r.path.forEach(p => ctx.lineTo(p.x, p.y));
         ctx.stroke();
 
-        if (r.length >= r.maxLength) {
-          roots.splice(i, 1);
-        }
+        if (r.life > r.max) roots.splice(i, 1);
       });
-      requestAnimationFrame(draw);
+
+      if (Math.random() < 0.05) createRoot();
+      requestAnimationFrame(animateRoots);
     }
 
-    setInterval(createRoot, 800);
-    draw();
+    animateRoots();
   </script>
 </body>
 </html>
