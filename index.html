@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OX</title>
+  <title>chimera</title>
   <link rel="icon" href="" type="image/png" />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
   <style>
@@ -215,5 +215,73 @@
 
     animateRoots();
   </script>
+  <!-- ВСТАВЬ ЭТО ПЕРЕД </body> -->
+<canvas id="rootsCanvas" style="position: fixed; top: 0; left: 0; z-index: 0; pointer-events: none;"></canvas>
+<script>
+  const canvas = document.getElementById("rootsCanvas");
+  const ctx = canvas.getContext("2d");
+  let width, height;
+
+  function resizeCanvas() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  const roots = [];
+
+  function createRoot() {
+    const root = {
+      x: Math.random() * width,
+      y: 0,
+      path: [],
+      speed: 1 + Math.random() * 2,
+      length: 50 + Math.random() * 100,
+      color: `hsl(${20 + Math.random() * 40}, 60%, ${30 + Math.random() * 30}%)`,
+      opacity: 1
+    };
+    roots.push(root);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, width, height);
+
+    roots.forEach((root, index) => {
+      if (root.path.length < root.length) {
+        const last = root.path[root.path.length - 1] || { x: root.x, y: root.y };
+        const angle = (Math.random() - 0.5) * Math.PI;
+        const distance = root.speed;
+        const newX = last.x + Math.cos(angle) * distance;
+        const newY = last.y + Math.sin(angle) * distance + 1;
+
+        root.path.push({ x: newX, y: newY });
+      } else {
+        root.opacity -= 0.01;
+      }
+
+      ctx.beginPath();
+      ctx.strokeStyle = root.color;
+      ctx.globalAlpha = root.opacity;
+      ctx.lineWidth = 1.5;
+      for (let i = 0; i < root.path.length - 1; i++) {
+        ctx.moveTo(root.path[i].x, root.path[i].y);
+        ctx.lineTo(root.path[i + 1].x, root.path[i + 1].y);
+      }
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      if (root.opacity <= 0) {
+        roots.splice(index, 1);
+      }
+    });
+
+    requestAnimationFrame(draw);
+  }
+
+  setInterval(createRoot, 500); // частота появления
+  draw();
+</script>
 </body>
 </html>
