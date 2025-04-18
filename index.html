@@ -92,10 +92,7 @@
       color: beige;
       max-width: 90vw;
       max-height: 80vh;
-      width: 90vw;
-      height: 80vh;
       overflow: auto;
-      box-sizing: border-box;
       word-wrap: break-word;
       overflow-wrap: break-word;
       font-family: 'Orbitron', sans-serif;
@@ -138,40 +135,39 @@
     <div class="menu-item" onclick="openPopup('popup2')">NEWS</div>
   </div>
 
-  <div class="content-container">
-    <p>
-      Welcome to the realm of Chimera. This platform brings you closer to the fusion of myth and machine.
-    </p>
-  </div>
-
-
-  <!-- Popup WORK -->
- <div class="popup" id="work-popup">
-  <div class="popup-content">
-    <div>
-      <p>Здесь находится текст для раздела WORK. Он может быть коротким или длинным.</p>
+  <!-- Popup for WORK -->
+  <div class="popup" id="popup1">
+    <div class="popup-content">
+      <p>Here you can describe your latest or ongoing work projects. Add anything from concepts to links or visuals. 🚀</p>
+      <button class="close-btn" onclick="closePopup('popup1')">Close</button>
     </div>
-    <button class="close-btn" onclick="closePopup('work-popup')">Close</button>
   </div>
-</div>
 
-<!-- POPUP NEWS -->
-<div class="popup" id="news-popup">
-  <div class="popup-content">
-    <div>
-      <p>Это текст для NEWS. Он также адаптируется по высоте окна.</p>
+  <!-- Popup for NEWS -->
+  <div class="popup" id="popup2">
+    <div class="popup-content">
+      <p>This is the news section. Share updates, announcements, or anything exciting happening. 📰</p>
+      <button class="close-btn" onclick="closePopup('popup2')">Close</button>
     </div>
-    <button class="close-btn" onclick="closePopup('news-popup')">Close</button>
   </div>
-</div>
 
-<script>
-  function openPopup(id) {
-    document.getElementById(id).style.display = 'flex';
-  }
-  function closePopup(id) {
-    document.getElementById(id).style.display = 'none';
-  }
-</script>
+  <script>
+    function openPopup(id) {
+      document.getElementById(id).style.display = 'flex';
+    }
+
+    function closePopup(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    // Optional: close popup on outside click
+    window.addEventListener('click', function(e) {
+      document.querySelectorAll('.popup').forEach(popup => {
+        if (e.target === popup) {
+          popup.style.display = 'none';
+        }
+      });
+    });
+  </script>
 </body>
 </html>
