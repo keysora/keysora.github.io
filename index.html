@@ -3,26 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chimera</title>
+  <title>chimera</title>
   <link rel="icon" href="" type="image/png" />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
     body {
+      margin: 0;
       background: black;
-      color: #fff;
       font-family: 'Orbitron', sans-serif;
+      color: white;
       overflow-x: hidden;
     }
 
     .header {
+      background: black;
       text-align: center;
-      padding: 20px 0;
+      padding: 20px 0 10px;
+      position: relative;
+      z-index: 1;
     }
 
     .avatar {
@@ -30,51 +28,55 @@
       height: 150px;
       object-fit: cover;
       border-radius: 50%;
-      pointer-events: none;
     }
 
     .menu-container {
       display: flex;
       justify-content: center;
-      gap: 10px;
+      gap: 20px;
       padding: 20px 0;
-      background: linear-gradient(to bottom, #3d2c1e, #000);
+      background: linear-gradient(to bottom, #1a1a1a, #3b2f2f);
       position: relative;
       z-index: 1;
     }
 
     .menu-item {
-      background: linear-gradient(145deg, #4b2c20, #1a0e07);
-      color: beige;
-      padding: 15px 25px;
-      border-radius: 0 0 20px 20px;
-      text-decoration: none;
-      font-size: 1.2rem;
-      box-shadow: 0 5px 10px rgba(0,0,0,0.4);
-      transition: transform 0.3s ease;
-      min-width: 120px;
+      width: 140px;
+      background: linear-gradient(145deg, #8B4513, #A0522D);
+      border: 2px solid #654321;
+      border-radius: 15px 15px 40px 40px;
+      padding: 15px;
       text-align: center;
+      font-size: 1rem;
+      text-decoration: none;
+      color: beige;
+      transition: 0.3s ease;
     }
 
     .menu-item:hover {
       transform: scale(1.05);
+      background: linear-gradient(145deg, #A0522D, #8B4513);
       cursor: pointer;
     }
 
-    .content {
-      max-width: 600px;
-      margin: 30px auto;
+    .content-container {
+      max-width: 720px;
+      margin: 0 auto;
       padding: 20px;
       text-align: center;
       position: relative;
       z-index: 1;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 15px;
     }
 
     .popup {
       display: none;
       position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
       background: rgba(0, 0, 0, 0.8);
       justify-content: center;
       align-items: center;
@@ -82,16 +84,19 @@
     }
 
     .popup-content {
-      background: #1e1e1e;
+      background: #2c2c2c;
       padding: 30px;
       border-radius: 15px;
       text-align: center;
-      color: white;
+      color: beige;
       max-width: 90vw;
       max-height: 80vh;
       overflow: auto;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      box-sizing: border-box;
       font-family: 'Orbitron', sans-serif;
-      letter-spacing: 1px;
+      letter-spacing: 0.05em;
       line-height: 1.6;
     }
 
@@ -105,118 +110,35 @@
       cursor: pointer;
     }
 
-    canvas#rootsCanvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 0;
-      pointer-events: none;
+    @media screen and (max-width: 600px) {
+      .menu-container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .menu-item {
+        width: 80%;
+      }
     }
   </style>
 </head>
 <body>
   <div class="header">
-    <img src="https://i.giphy.com/NdfmEYiiMpt6UwAeWs.webp" alt="Avatar" class="avatar" />
+    <img src="https://i.giphy.com/NdfmEYiiMpt6UwAeWs.webp" alt="Top Avatar" class="avatar" />
   </div>
 
   <div class="menu-container">
-    <a href="#" class="menu-item">Main</a>
-    <a href="#" class="menu-item">Info</a>
     <a href="#" class="menu-item">Bot</a>
+    <a href="#" class="menu-item">Chat</a>
+    <a href="#" class="menu-item">Map</a>
     <div class="menu-item" onclick="openPopup('popup1')">Work</div>
     <div class="menu-item" onclick="openPopup('popup2')">News</div>
   </div>
 
-  <div class="content">
-    <p>Welcome to the realm of the Chimera. This is your center of power, mystery, and creation. Choose your path.</p>
+  <div class="content-container">
+    <p>
+      Welcome to the realm of Chimera. This platform brings you closer to the fusion of myth and machine, where the digital meets the primal.
+    </p>
   </div>
-
-  <div class="popup" id="popup1">
-    <div class="popup-content">
-      <p>This is popup window #1 with detailed information about work.</p>
-      <button class="close-btn" onclick="closePopup('popup1')">Close</button>
-    </div>
-  </div>
-
-  <div class="popup" id="popup2">
-    <div class="popup-content">
-      <p>This is popup window #2 with current updates and news.</p>
-      <button class="close-btn" onclick="closePopup('popup2')">Close</button>
-    </div>
-  </div>
-
-  <canvas id="rootsCanvas"></canvas>
-  <script>
-    const canvas = document.getElementById("rootsCanvas");
-    const ctx = canvas.getContext("2d");
-    let width, height;
-
-    function resizeCanvas() {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    }
-
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    const roots = [];
-
-    function createRoot() {
-      const root = {
-        x: Math.random() * width,
-        y: 0,
-        path: [],
-        speed: 1 + Math.random() * 1.5,
-        length: 80 + Math.random() * 70,
-        color: `rgba(${Math.floor(60 + Math.random()*40)}, ${Math.floor(40 + Math.random()*50)}, ${Math.floor(20 + Math.random()*40)}, 0.9)`,
-        opacity: 1
-      };
-      roots.push(root);
-    }
-
-    function draw() {
-      ctx.clearRect(0, 0, width, height);
-
-      roots.forEach((root, index) => {
-        if (root.path.length < root.length) {
-          const last = root.path[root.path.length - 1] || { x: root.x, y: root.y };
-          const angle = (Math.random() - 0.5) * Math.PI;
-          const distance = root.speed;
-          const newPoint = {
-            x: last.x + Math.cos(angle) * distance,
-            y: last.y + Math.sin(angle) * distance
-          };
-          root.path.push(newPoint);
-        } else {
-          root.opacity -= 0.01;
-          if (root.opacity <= 0) roots.splice(index, 1);
-        }
-
-        ctx.beginPath();
-        ctx.strokeStyle = root.color.replace("0.9", root.opacity.toFixed(2));
-        ctx.lineWidth = 1.2;
-        ctx.moveTo(root.x, root.y);
-        for (let p of root.path) {
-          ctx.lineTo(p.x, p.y);
-        }
-        ctx.stroke();
-      });
-
-      requestAnimationFrame(draw);
-    }
-
-    setInterval(createRoot, 600); // скорость появления корней
-    draw();
-  </script>
-
-  <script>
-    function openPopup(id) {
-      document.getElementById(id).style.display = "flex";
-    }
-
-    function closePopup(id) {
-      document.getElementById(id).style.display = "none";
-    }
-  </script>
 </body>
 </html>
