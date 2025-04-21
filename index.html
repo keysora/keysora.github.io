@@ -140,142 +140,128 @@
     </div>
   </div>
 
-  <script>
-    const canvas = document.getElementById("game");
-    const ctx = canvas.getContext("2d");
-    const box = 20;
-    const rows = canvas.height / box;
-    const cols = canvas.width / box;
+ <script>
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
 
-    let snake = [];
-    let food;
-    let direction = null;
-    let interval;
-    let playing = false;
-    let score = 0;
+  const box = 20;
+  let snake = [];
+  let direction = 'right';
+  let food;
+  let gameLoop;
+  const gameOverText = document.getElementById('game-over-text');
+  const matrixCanvas = document.getElementById('matrix');
+  const matrixCtx = matrixCanvas.getContext('2d');
+  matrixCanvas.width = window.innerWidth;
+  matrixCanvas.height = window.innerHeight;
 
-    const userId = Math.floor(10000 + Math.random() * 90000);
-    document.getElementById("userId").textContent = userId;
+  // Basic matrix background
+  const matrixColumns = Math.floor(matrixCanvas.width / 10);
+  const drops = Array(matrixColumns).fill(1);
+  function drawMatrix() {
+    matrixCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+    matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+    matrixCtx.fillStyle = '#0F0';
+    matrixCtx.font = '10px monospace';
 
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // Draw snake
-      ctx.fillStyle = "lime";
-      snake.forEach(part => ctx.fillRect(part.x * box, part.y * box, box, box));
-      // Draw food
-      ctx.fillStyle = "red";
-      ctx.fillRect(food.x * box, food.y * box, box, box);
+    for (let i = 0; i < drops.length; i++) {
+      const text = String.fromCharCode(0x30A0 + Math.random() * 96);
+      matrixCtx.fillText(text, i * 10, drops[i] * 10);
+      if (drops[i] * 10 > matrixCanvas.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    }
+  }
+  let matrixInterval = setInterval(drawMatrix, 50);
+
+  function startGame() {
+    clearInterval(matrixInterval); // Hide matrix during game
+    gameOverText.style.display = 'none';
+    snake = [{x: 9 * box, y: 10 * box}];
+    direction = 'right';
+    food = {
+      x: Math.floor(Math.random() * 20) * box,
+      y: Math.floor(Math.random() * 20) * box,
+    };
+
+    if (gameLoop) clearInterval(gameLoop);
+    gameLoop = setInterval(draw, 100);
+  }
+
+  function draw() {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw snake
+    for (let i = 0; i < snake.length; i++) {
+      ctx.fillStyle = 'crimson';
+      ctx.fillRect(snake[i].x, snake[i].y, box, box);
     }
 
-    function placeFood() {
+    // Draw food
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(food.x, food.y, box, box);
+
+    // Head position
+    let headX = snake[0].x;
+    let headY = snake[0].y;
+
+    if (direction === 'left') headX -= box;
+    if (direction === 'right') headX += box;
+    if (direction === 'up') headY -= box;
+    if (direction === 'down') headY += box;
+
+    // Collision with walls
+    if (headX < 0 || headX >= canvas.width || headY < 0 || headY >= canvas.height || collision({x: headX, y: headY}, snake)) {
+      clearInterval(gameLoop);
+      matrixInterval = setInterval(drawMatrix, 50); // Show matrix again
+      gameOverText.style.display = 'block';
+      return;
+    }
+
+    // Eat food
+    let newHead;
+    if (headX === food.x && headY === food.y) {
       food = {
-        x: Math.floor(Math.random() * cols),
-        y: Math.floor(Math.random() * rows),
+        x: Math.floor(Math.random() * 20) * box,
+        y: Math.floor(Math.random() * 20) * box,
       };
+    } else {
+      snake.pop();
     }
 
-    function gameLoop() {
-      const head = { ...snake[0] };
+    newHead = {x: headX, y: headY};
+    snake.unshift(newHead);
+  }
 
-      if (direction === "left") head.x--;
-      else if (direction === "right") head.x++;
-      else if (direction === "up") head.y--;
-      else if (direction === "down") head.y++;
-
-      if (
-        head.x < 0 || head.x >= cols ||
-        head.y < 0 || head.y >= rows ||
-        snake.some(s => s.x === head.x && s.y === head.y)
-      ) {
-        clearInterval(interval);
-        document.getElementById("game-over-text").style.display = "block";
-        startMatrix();
-        playing = false;
-        return;
+  function collision(head, array) {
+    for (let i = 0; i < array.length; i++) {
+      if (head.x === array[i].x && head.y === array[i].y) {
+        return true;
       }
-
-      snake.unshift(head);
-
-      if (head.x === food.x && head.y === food.y) {
-        score++;
-        placeFood();
-      } else {
-        snake.pop();
-      }
-
-      draw();
     }
+    return false;
+  }
 
-    function startGame() {
-      document.getElementById("game-over-text").style.display = "none";
-      stopMatrix();
-      playing = true;
-      direction = null;
-      snake = [{ x: 9, y: 9 }];
-      placeFood();
-      clearInterval(interval);
-      interval = setInterval(gameLoop, 150);
-    }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft' && direction !== 'right') direction = 'left';
+    else if (e.key === 'ArrowUp' && direction !== 'down') direction = 'up';
+    else if (e.key === 'ArrowRight' && direction !== 'left') direction = 'right';
+    else if (e.key === 'ArrowDown' && direction !== 'up') direction = 'down';
+  });
 
-    function togglePopup(id) {
-      const popup = document.getElementById(id);
-      popup.style.display = popup.style.display === "flex" ? "none" : "flex";
-    }
+  // Mobile controls
+  function setDirection(dir) {
+    if (dir === 'left' && direction !== 'right') direction = 'left';
+    else if (dir === 'up' && direction !== 'down') direction = 'up';
+    else if (dir === 'right' && direction !== 'left') direction = 'right';
+    else if (dir === 'down' && direction !== 'up') direction = 'down';
+  }
 
-    function setDirection(dir) {
-      direction = dir;
-    }
-
-    document.addEventListener("keydown", (e) => {
-      if (!playing) return;
-      const keyMap = {
-        ArrowUp: "up",
-        ArrowDown: "down",
-        ArrowLeft: "left",
-        ArrowRight: "right",
-        w: "up",
-        s: "down",
-        a: "left",
-        d: "right"
-      };
-      const newDir = keyMap[e.key];
-      if (newDir) direction = newDir;
-    });
-
-    // MATRIX ANIMATION
-    const matrixCanvas = document.getElementById("matrix");
-    const mtx = matrixCanvas.getContext("2d");
-    matrixCanvas.width = window.innerWidth;
-    matrixCanvas.height = window.innerHeight;
-    const columns = Math.floor(matrixCanvas.width / 20);
-    const drops = Array(columns).fill(1);
-
-    let matrixInterval;
-
-    function startMatrix() {
-      matrixInterval = setInterval(() => {
-        mtx.fillStyle = "rgba(0, 0, 0, 0.05)";
-        mtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
-        mtx.fillStyle = "#f00";
-        mtx.font = "16px monospace";
-        for (let i = 0; i < drops.length; i++) {
-          const text = String.fromCharCode(0x30A0 + Math.random() * 96);
-          mtx.fillText(text, i * 20, drops[i] * 20);
-          if (drops[i] * 20 > matrixCanvas.height && Math.random() > 0.975) {
-            drops[i] = 0;
-          }
-          drops[i]++;
-        }
-      }, 33);
-    }
-
-    function stopMatrix() {
-      clearInterval(matrixInterval);
-      mtx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
-    }
-
-    // Start matrix on load
-    startMatrix();
-  </script>
+  // Popup toggles
+  function togglePopup(id) {
+    const popup = document.getElementById(id);
+    popup.style.display = popup.style.display === 'flex' ? 'none' : 'flex';
+  }
+</script>
 </body>
 </html>
