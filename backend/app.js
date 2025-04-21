@@ -2,30 +2,63 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const TelegramBot = require('node-telegram-bot-api'); // Add Telegram
 
 const app = express();
 
-// Подключаем MongoDB Atlas
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('MongoDB connected!'))
-  .catch(err => console.log('MongoDB error:', err));
+// 1. MongoDB Connection (Improved)
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('✅ MongoDB connected successfully'))
+.catch(err => console.error('❌ MongoDB connection error:', err));
 
-// Разрешаем запросы от фронтенда
-app.use(cors());
+// 2. Middleware
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5500' // Adjust to your frontend
+}));
 app.use(express.json());
 
-// Тестовый маршрут
-app.get('/', (req, res) => {
-  res.send('FoxGem Backend is LIVE!');
+// 3. Telegram Bot Setup
+const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
+bot.on('message', (msg) => {
+  const chatId = msg.chat.id;
+  bot.sendMessage(chatId, `Hello from FoxGem! Your ID: ${chatId}`);
 });
 
-// Сохранение результатов игры
+// 4. Database Model (Add this before routes)
+const GameResult = mongoose.model('GameResult', new mongoose.Schema({
+  telegramId: { type: Number, required: true },
+  score: { type: Number, required: true },
+  date: { type: Date, default: Date.now }
+}));
+
+// 5. Enhanced Game Saving Route
 app.post('/api/save', async (req, res) => {
-  const { telegramId, score } = req.body;
-  console.log(`User ${telegramId} scored ${score}`);
-  res.json({ success: true });
+  try {
+    const { telegramId, score } = req.body;
+    
+    // Save to MongoDB
+    const result = await GameResult.create({ telegramId, score });
+    
+    // Notify user via Telegram
+    await bot.sendMessage(telegramId, `Your score ${score} was saved!`);
+    
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('Save error:', error);
+    res.status(500).json({ success: false });
+  }
 });
 
-// Запуск сервера
+// 6. Frontend Serving (Add if you want Express to serve HTML)
+const path = require('path');
+app.use(express.static(path.join(__dirname, '../frontend')));
+
+// 7. Start Server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🔗 Frontend: ${process.env.FRONTEND_URL || 'http://localhost:' + PORT}`);
+});
