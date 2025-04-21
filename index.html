@@ -1,206 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Snake Game</title>
   <style>
     body {
       margin: 0;
-      background: #111;
-      color: #fff;
-      font-family: sans-serif;
+      font-family: Arial, sans-serif;
+      background-color: #000;
+      color: white;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
     }
     canvas {
-      background: #000;
-      display: block;
-      margin: 10px auto;
-      border: 2px solid #fff;
+      background-color: #111;
+      margin-top: 20px;
+      image-rendering: pixelated;
     }
     #menu {
+      margin-top: 20px;
+    }
+    .menu-button {
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #mobile-controls {
       display: none;
       flex-direction: column;
       align-items: center;
       margin-top: 20px;
     }
-    .menu-button {
-      background: #333;
-      color: #fff;
-      padding: 10px 20px;
+    .mobile-row {
+      display: flex;
+      justify-content: center;
+    }
+    .control-button {
+      width: 60px;
+      height: 60px;
       margin: 5px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 18px;
+      font-size: 24px;
+      font-weight: bold;
+      background-color: #222;
+      color: white;
+      border: 2px solid white;
+      border-radius: 10px;
     }
-    .menu-button:hover {
-      background: #555;
-    }
-    #gameOverText {
-      display: none;
-      font-size: 28px;
-      color: red;
-      margin-top: 10px;
+    @media (max-width: 768px) {
+      #mobile-controls {
+        display: flex;
+      }
     }
   </style>
 </head>
 <body>
+  <h1>Snake Game</h1>
   <canvas id="game" width="400" height="400"></canvas>
-  <div id="gameOverText">Game Over</div>
   <div id="menu">
     <button class="menu-button" onclick="startGame()">/play</button>
     <button class="menu-button">/account</button>
     <button class="menu-button">/top players this week</button>
   </div>
 
+  <div id="mobile-controls">
+    <div class="mobile-row">
+      <button class="control-button" onclick="changeDirection('up')">⬆️</button>
+    </div>
+    <div class="mobile-row">
+      <button class="control-button" onclick="changeDirection('left')">⬅️</button>
+      <button class="control-button" onclick="changeDirection('down')">⬇️</button>
+      <button class="control-button" onclick="changeDirection('right')">➡️</button>
+    </div>
+  </div>
+
   <script>
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
-    const scale = 20;
-    const rows = canvas.height / scale;
-    const columns = canvas.width / scale;
+    const box = 20;
+    let snake = [{ x: 9 * box, y: 10 * box }];
+    let food = randomPosition();
+    let direction = null;
+    let gameInterval;
 
-    let snake;
-    let food;
-    let running = false;
-
-    class Snake {
-      constructor() {
-        this.body = [
-          { x: 5 * scale, y: 5 * scale }
-        ];
-        this.xSpeed = scale;
-        this.ySpeed = 0;
-        this.growing = false;
-      }
-
-      draw() {
-        ctx.fillStyle = 'red';
-        for (let segment of this.body) {
-          ctx.fillRect(segment.x, segment.y, scale, scale);
-        }
-      }
-
-      update() {
-        const head = { x: this.body[0].x + this.xSpeed, y: this.body[0].y + this.ySpeed };
-        this.body.unshift(head);
-        if (!this.growing) {
-          this.body.pop();
-        } else {
-          this.growing = false;
-        }
-      }
-
-      changeDirection(direction) {
-        switch (direction) {
-          case 'Up':
-            if (this.ySpeed === 0) {
-              this.xSpeed = 0;
-              this.ySpeed = -scale;
-            }
-            break;
-          case 'Down':
-            if (this.ySpeed === 0) {
-              this.xSpeed = 0;
-              this.ySpeed = scale;
-            }
-            break;
-          case 'Left':
-            if (this.xSpeed === 0) {
-              this.xSpeed = -scale;
-              this.ySpeed = 0;
-            }
-            break;
-          case 'Right':
-            if (this.xSpeed === 0) {
-              this.xSpeed = scale;
-              this.ySpeed = 0;
-            }
-            break;
-        }
-      }
-
-      eat(pos) {
-        if (this.body[0].x === pos.x && this.body[0].y === pos.y) {
-          this.growing = true;
-          return true;
-        }
-        return false;
-      }
-
-      checkCollision() {
-        const head = this.body[0];
-        if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height) return true;
-        for (let i = 1; i < this.body.length; i++) {
-          if (head.x === this.body[i].x && head.y === this.body[i].y) return true;
-        }
-        return false;
-      }
+    function randomPosition() {
+      return {
+        x: Math.floor(Math.random() * (canvas.width / box)) * box,
+        y: Math.floor(Math.random() * (canvas.height / box)) * box,
+      };
     }
 
-    class Food {
-      constructor() {
-        this.pickLocation();
-      }
+    function drawGame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'red';
+      snake.forEach(part => ctx.fillRect(part.x, part.y, box, box));
+      ctx.fillStyle = 'white';
+      ctx.fillRect(food.x, food.y, box, box);
+    }
 
-      pickLocation() {
-        this.x = Math.floor(Math.random() * columns) * scale;
-        this.y = Math.floor(Math.random() * rows) * scale;
-      }
+    function updateGame() {
+      const head = { ...snake[0] };
+      if (!direction) return;
 
-      draw() {
+      if (direction === 'left') head.x -= box;
+      if (direction === 'up') head.y -= box;
+      if (direction === 'right') head.x += box;
+      if (direction === 'down') head.y += box;
+
+      if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height || snake.some(part => part.x === head.x && part.y === head.y)) {
+        clearInterval(gameInterval);
         ctx.fillStyle = 'white';
-        ctx.fillRect(this.x, this.y, scale, scale);
+        ctx.font = '30px Arial';
+        ctx.fillText('Game Over', canvas.width / 2 - 80, canvas.height / 2);
+        document.getElementById('menu').style.display = 'block';
+        return;
       }
+
+      snake.unshift(head);
+
+      if (head.x === food.x && head.y === food.y) {
+        food = randomPosition();
+      } else {
+        snake.pop();
+      }
+
+      drawGame();
     }
 
     function startGame() {
+      snake = [{ x: 9 * box, y: 10 * box }];
+      food = randomPosition();
+      direction = null;
       document.getElementById('menu').style.display = 'none';
-      document.getElementById('gameOverText').style.display = 'none';
-      snake = new Snake();
-      food = new Food();
-      running = true;
-      loop();
+      drawGame();
+      gameInterval = setInterval(updateGame, 150);
     }
 
-    function gameOver() {
-      running = false;
-      document.getElementById('gameOverText').style.display = 'block';
-      document.getElementById('menu').style.display = 'flex';
+    function changeDirection(dir) {
+      if (
+        (dir === 'left' && direction !== 'right') ||
+        (dir === 'right' && direction !== 'left') ||
+        (dir === 'up' && direction !== 'down') ||
+        (dir === 'down' && direction !== 'up')
+      ) {
+        direction = dir;
+      }
     }
 
-    function loop() {
-      if (!running) return;
-      setTimeout(() => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        food.draw();
-        snake.update();
-        snake.draw();
-
-        if (snake.eat(food)) {
-          food.pickLocation();
-        }
-
-        if (snake.checkCollision()) {
-          gameOver();
-        } else {
-          requestAnimationFrame(loop);
-        }
-      }, 100);
-    }
-
-    window.addEventListener('keydown', e => {
-      const direction = e.key.replace('Arrow', '');
-      snake.changeDirection(direction);
+    document.addEventListener('keydown', event => {
+      if (event.key === 'ArrowLeft') changeDirection('left');
+      if (event.key === 'ArrowUp') changeDirection('up');
+      if (event.key === 'ArrowRight') changeDirection('right');
+      if (event.key === 'ArrowDown') changeDirection('down');
     });
-
-    // Показываем меню при первом запуске
-    document.getElementById('menu').style.display = 'flex';
   </script>
 </body>
 </html>
