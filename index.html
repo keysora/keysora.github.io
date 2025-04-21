@@ -1,184 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snake Game</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      background-color: #111;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    canvas {
+      background: #000;
+      margin-top: 20px;
+    }
+    .menu, .account-popup, .leaderboard-popup {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    .button, .control-btn {
+      padding: 10px 20px;
+      background-color: crimson;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1em;
+    }
+    .mobile-controls {
+      display: none;
+      flex-direction: column;
+      margin-top: 20px;
+    }
+    .mobile-controls .row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    @media (max-width: 768px) {
+      .mobile-controls {
+        display: flex;
+      }
+    }
+    .popup {
+      position: absolute;
+      top: 100px;
+      background: rgba(0, 0, 0, 0.9);
+      padding: 20px;
+      border: 2px solid red;
+      border-radius: 15px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .popup input {
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Snake Game</h1>
+  <canvas id="game" width="400" height="400"></canvas>
 
-import React, { useState, useEffect } from "react";
+  <div class="menu">
+    <button class="button" onclick="startGame()">/play</button>
+    <button class="button" onclick="togglePopup('account-popup')">/account</button>
+    <button class="button" onclick="togglePopup('leaderboard-popup')">/top players this week</button>
+  </div>
 
-const gridSize = 20;
-const initialSnake = [
-  { x: 5, y: 5 },
-  { x: 4, y: 5 }
-];
+  <div id="account-popup" class="popup">
+    <p><b>ID:</b> <span id="userId">12345</span></p>
+    <p><b>Games played:</b> <span id="gamesPlayed">0</span></p>
+    <p><b>Your rank:</b> <span id="userRank">???</span></p>
+    <input id="usernameInput" maxlength="10" minlength="3" placeholder="Enter your name">
+    <button onclick="saveName()">Save</button>
+  </div>
 
-const getRandomFood = () => ({
-  x: Math.floor(Math.random() * gridSize),
-  y: Math.floor(Math.random() * gridSize)
-});
+  <div id="leaderboard-popup" class="popup">
+    <div id="leaderboard">Loading...</div>
+  </div>
 
-export default function SnakeGame() {
-  const [snake, setSnake] = useState(initialSnake);
-  const [direction, setDirection] = useState("RIGHT");
-  const [food, setFood] = useState(getRandomFood());
-  const [gameOver, setGameOver] = useState(false);
-  const [showMenu, setShowMenu] = useState(true);
-  const [userId] = useState(Math.floor(Math.random() * 100000));
-  const [gamesPlayed, setGamesPlayed] = useState(0);
-  const [username, setUsername] = useState("");
-  const [topPlayers, setTopPlayers] = useState([]);
-  const [view, setView] = useState("menu");
+  <div class="mobile-controls">
+    <div class="row">
+      <button class="control-btn" onclick="setDirection('up')">⬆</button>
+    </div>
+    <div class="row">
+      <button class="control-btn" onclick="setDirection('left')">⬅</button>
+      <button class="control-btn" onclick="setDirection('down')">⬇</button>
+      <button class="control-btn" onclick="setDirection('right')">➡</button>
+    </div>
+  </div>
 
-  useEffect(() => {
-    if (view === "game") {
-      const handleKeyDown = (e) => {
-        switch (e.key) {
-          case "ArrowUp": setDirection("UP"); break;
-          case "ArrowDown": setDirection("DOWN"); break;
-          case "ArrowLeft": setDirection("LEFT"); break;
-          case "ArrowRight": setDirection("RIGHT"); break;
-        }
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const box = 20;
+    const rows = canvas.height / box;
+    const cols = canvas.width / box;
+
+    let snake;
+    let food;
+    let direction;
+    let score = 0;
+    let interval;
+    let userId = Math.floor(Math.random() * 100000);
+    let gamesPlayed = 0;
+
+    function startGame() {
+      snake = [{ x: 10, y: 10 }];
+      direction = "right";
+      food = {
+        x: Math.floor(Math.random() * cols),
+        y: Math.floor(Math.random() * rows),
       };
-      window.addEventListener("keydown", handleKeyDown);
-      return () => window.removeEventListener("keydown", handleKeyDown);
+      score = 0;
+      clearInterval(interval);
+      interval = setInterval(draw, 150);
     }
-  }, [view]);
 
-  useEffect(() => {
-    if (view === "game" && !gameOver) {
-      const move = setInterval(() => {
-        setSnake((prev) => {
-          const head = { ...prev[0] };
-          if (direction === "UP") head.y -= 1;
-          if (direction === "DOWN") head.y += 1;
-          if (direction === "LEFT") head.x -= 1;
-          if (direction === "RIGHT") head.x += 1;
+    function draw() {
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-          if (
-            head.x < 0 ||
-            head.y < 0 ||
-            head.x >= gridSize ||
-            head.y >= gridSize ||
-            prev.some(segment => segment.x === head.x && segment.y === head.y)
-          ) {
-            setGameOver(true);
-            setGamesPlayed(g => g + 1);
-            return prev;
-          }
+      for (let i = 0; i < snake.length; i++) {
+        ctx.fillStyle = "red";
+        ctx.fillRect(snake[i].x * box, snake[i].y * box, box, box);
+      }
 
-          const newSnake = [head, ...prev];
-          if (head.x === food.x && head.y === food.y) {
-            setFood(getRandomFood());
-            return newSnake;
-          }
-          newSnake.pop();
-          return newSnake;
-        });
-      }, 150);
-      return () => clearInterval(move);
+      ctx.fillStyle = "white";
+      ctx.fillRect(food.x * box, food.y * box, box, box);
+
+      let head = { ...snake[0] };
+
+      if (direction === "left") head.x--;
+      if (direction === "right") head.x++;
+      if (direction === "up") head.y--;
+      if (direction === "down") head.y++;
+
+      if (
+        head.x < 0 ||
+        head.x >= cols ||
+        head.y < 0 ||
+        head.y >= rows ||
+        snake.some((s, index) => index !== 0 && s.x === head.x && s.y === head.y)
+      ) {
+        clearInterval(interval);
+        alert("Game Over");
+        gamesPlayed++;
+        document.getElementById("gamesPlayed").innerText = gamesPlayed;
+        document.querySelector(".menu").style.display = "flex";
+        return;
+      }
+
+      snake.unshift(head);
+
+      if (head.x === food.x && head.y === food.y) {
+        food = {
+          x: Math.floor(Math.random() * cols),
+          y: Math.floor(Math.random() * rows),
+        };
+        score++;
+      } else {
+        snake.pop();
+      }
     }
-  }, [direction, food, gameOver, view]);
 
-  const renderCell = (x, y) => {
-    const isSnake = snake.some(s => s.x === x && s.y === y);
-    const isFood = food.x === x && food.y === y;
-    const bg = isSnake ? "bg-red-600" : isFood ? "bg-white" : "bg-gray-800";
-    return <div key={`${x}-${y}`} className={`w-4 h-4 ${bg} border border-gray-900`} />;
-  };
-
-  const handleStart = () => {
-    setSnake(initialSnake);
-    setDirection("RIGHT");
-    setFood(getRandomFood());
-    setGameOver(false);
-    setShowMenu(false);
-    setView("game");
-  };
-
-  const renderMobileControls = () => (
-    <div className="flex flex-col items-center gap-2 mt-4 md:hidden">
-      <button onClick={() => setDirection("UP")} className="bg-white text-black p-2 px-4 rounded">↑</button>
-      <div className="flex gap-4">
-        <button onClick={() => setDirection("LEFT")} className="bg-white text-black p-2 px-4 rounded">←</button>
-        <button onClick={() => setDirection("RIGHT")} className="bg-white text-black p-2 px-4 rounded">→</button>
-      </div>
-      <button onClick={() => setDirection("DOWN")} className="bg-white text-black p-2 px-4 rounded">↓</button>
-    </div>
-  );
-
-  const handleMenuClick = (option) => {
-    if (option === "/play") handleStart();
-    else if (option === "/account") setView("account");
-    else if (option === "/top") {
-      // Simulated top player data
-      setTopPlayers([
-        { id: 12345, name: "Neo" },
-        { id: 67890, name: "Trinity" },
-        { id: 54321, name: null }
-      ]);
-      setView("top");
+    function setDirection(dir) {
+      if (
+        (dir === "left" && direction !== "right") ||
+        (dir === "right" && direction !== "left") ||
+        (dir === "up" && direction !== "down") ||
+        (dir === "down" && direction !== "up")
+      ) {
+        direction = dir;
+      }
     }
-  };
 
-  return (
-    <div className="flex flex-col items-center p-4 text-white font-mono">
-      <h1 className="text-2xl mb-4">Snake Game</h1>
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") setDirection("left");
+      if (e.key === "ArrowRight") setDirection("right");
+      if (e.key === "ArrowUp") setDirection("up");
+      if (e.key === "ArrowDown") setDirection("down");
+    });
 
-      {view === "menu" && (
-        <div className="flex flex-col gap-2">
-          <button onClick={() => handleMenuClick("/play")} className="bg-blue-500 px-4 py-2 rounded">/play</button>
-          <button onClick={() => handleMenuClick("/account")} className="bg-blue-500 px-4 py-2 rounded">/account</button>
-          <button onClick={() => handleMenuClick("/top")} className="bg-blue-500 px-4 py-2 rounded">/top players this week</button>
-        </div>
-      )}
+    function togglePopup(id) {
+      const popup = document.getElementById(id);
+      popup.style.display = popup.style.display === "flex" ? "none" : "flex";
+    }
 
-      {view === "account" && (
-        <div className="bg-gray-900 p-4 rounded shadow-lg text-left w-full max-w-sm">
-          <p><b>User ID:</b> {userId}</p>
-          <p><b>Games Played:</b> {gamesPlayed}</p>
-          <p><b>Your Rank:</b> #{Math.floor(1000 - gamesPlayed)}</p>
-          <p><b>Username:</b></p>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value.slice(0, 10))}
-            placeholder="Enter name (3-10 chars)"
-            className="w-full p-2 mt-1 text-black"
-          />
-          <button onClick={() => setView("menu")} className="mt-4 bg-blue-500 px-4 py-1 rounded">Back</button>
-        </div>
-      )}
-
-      {view === "top" && (
-        <div className="bg-gray-900 p-4 rounded shadow-lg w-full max-w-sm">
-          <h2 className="text-xl mb-2">Top Players</h2>
-          <ul className="list-disc list-inside">
-            {topPlayers.map((player, i) => (
-              <li key={i}>{player.name ? `${player.name} (${player.id})` : `ID: ${player.id}`}</li>
-            ))}
-          </ul>
-          <button onClick={() => setView("menu")} className="mt-4 bg-blue-500 px-4 py-1 rounded">Back</button>
-        </div>
-      )}
-
-      {view === "game" && (
-        <>
-          <div
-            className="grid grid-cols-20 gap-0.5 bg-black"
-            style={{ width: gridSize * 16, height: gridSize * 16 }}
-          >
-            {[...Array(gridSize)].map((_, y) =>
-              [...Array(gridSize)].map((_, x) => renderCell(x, y))
-            )}
-          </div>
-          {renderMobileControls()}
-          {gameOver && (
-            <div className="mt-4 text-center">
-              <p className="text-lg text-red-400 font-bold">Game Over</p>
-              <div className="flex flex-col gap-2 mt-2">
-                <button onClick={() => handleMenuClick("/play")} className="bg-blue-500 px-4 py-2 rounded">/play</button>
-                <button onClick={() => handleMenuClick("/account")} className="bg-blue-500 px-4 py-2 rounded">/account</button>
-                <button onClick={() => handleMenuClick("/top")} className="bg-blue-500 px-4 py-2 rounded">/top players this week</button>
-              </div>
-            </div>
-          )}
-        </>
-      )}
-    </div>
-  );
-}
+    function saveName() {
+      const input = document.getElementById("usernameInput");
+      const name = input.value.trim();
+      if (name.length >= 3 && name.length <= 10) {
+        alert(`Name saved as: ${name}`);
+      } else {
+        alert("Name must be 3 to 10 characters");
+      }
+    }
+  </script>
+</body>
+</html>
