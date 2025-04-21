@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -79,7 +78,7 @@
       transform: translate(-50%, -50%);
       background: rgba(0, 0, 0, 0.9);
       padding: 20px;
-      border: 2px solid red;
+      border: 2px solid crimson;
       border-radius: 15px;
       display: none;
       flex-direction: column;
@@ -93,7 +92,7 @@
     .close-btn {
       align-self: flex-end;
       cursor: pointer;
-      color: red;
+      color: crimson;
       font-size: 1.5em;
       margin-bottom: 10px;
     }
@@ -103,12 +102,17 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      color: red;
+      color: crimson;
       font-size: 3em;
       font-weight: bold;
-      text-shadow: 0 0 10px #fff;
       z-index: 5;
       display: none;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     .leaderboard-entry {
@@ -134,6 +138,10 @@
     .account-info {
       margin-bottom: 15px;
     }
+
+    .current-user {
+      color: crimson !important;
+    }
   </style>
 </head>
 <body>
@@ -156,7 +164,7 @@
       <p><b>Username:</b> <span id="username">TelegramUser</span></p>
       <p><b>Name:</b> <span id="userFullname">John Doe</span></p>
       <p><b>Games played:</b> <span id="gamesPlayed">0</span></p>
-      <p><b>Your rank:</b> <span id="userRank">???</span></p>
+      <p><b>Your best score:</b> <span id="userBestScore">0</span></p>
     </div>
   </div>
 
@@ -188,6 +196,7 @@
   let gameLoop;
   let score = 0;
   let gamesPlayed = 0;
+  let bestScore = 0;
   const gameOverText = document.getElementById('game-over-text');
 
   // Matrix setup
@@ -203,6 +212,7 @@
   const userId = generateUserId();
   document.getElementById('userId').textContent = userId;
   document.getElementById('gamesPlayed').textContent = gamesPlayed;
+  document.getElementById('userBestScore').textContent = bestScore;
   
   // Generate random 7-digit user ID
   function generateUserId() {
@@ -211,51 +221,123 @@
 
   // Simulate Telegram user data (in a real app this would come from Telegram WebApp)
   function getTelegramUserData() {
+    // This is a placeholder - in a real Telegram WebApp, you would use:
+    // const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
     return {
-      username: window.Telegram?.WebApp?.initDataUnsafe?.username || 'TelegramUser',
-      fullname: window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name + ' ' + 
-               (window.Telegram?.WebApp?.initDataUnsafe?.user?.last_name || '') || 'John Doe'
+      id: window.Telegram?.WebApp?.initDataUnsafe?.user?.id || userId,
+      username: window.Telegram?.WebApp?.initDataUnsafe?.user?.username || 'TelegramUser',
+      first_name: window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name || 'John',
+      last_name: window.Telegram?.WebApp?.initDataUnsafe?.user?.last_name || 'Doe'
     };
   }
 
   // Update user info from Telegram
   function updateUserInfo() {
     const userData = getTelegramUserData();
-    document.getElementById('username').textContent = userData.username;
-    document.getElementById('userFullname').textContent = userData.fullname;
+    document.getElementById('username').textContent = userData.username || 'TelegramUser';
+    document.getElementById('userFullname').textContent = `${userData.first_name} ${userData.last_name}`.trim();
+    
+    // In a real app, you would fetch this from your database
+    // For now, we'll use localStorage
+    const savedData = JSON.parse(localStorage.getItem(`snake_user_${userData.id}`)) || {};
+    gamesPlayed = savedData.gamesPlayed || 0;
+    bestScore = savedData.bestScore || 0;
+    
+    document.getElementById('gamesPlayed').textContent = gamesPlayed;
+    document.getElementById('userBestScore').textContent = bestScore;
   }
 
-  // Generate mock leaderboard data
-  function generateLeaderboard() {
-    const leaderboard = [];
-    for (let i = 1; i <= 100; i++) {
+  // Save user data to "database" (localStorage for demo)
+  function saveUserData(score) {
+    const userData = getTelegramUserData();
+    const savedData = JSON.parse(localStorage.getItem(`snake_user_${userData.id}`)) || {};
+    
+    gamesPlayed += 1;
+    if (score > bestScore) {
+      bestScore = score;
+    }
+    
+    const newData = {
+      id: userData.id,
+      username: userData.username,
+      first_name: userData.first_name,
+      last_name: userData.last_name,
+      gamesPlayed: gamesPlayed,
+      bestScore: bestScore,
+      lastPlayed: new Date().toISOString()
+    };
+    
+    localStorage.setItem(`snake_user_${userData.id}`, JSON.stringify(newData));
+    
+    // Also update the weekly leaderboard
+    updateWeeklyLeaderboard(userData.id, userData.username, score);
+  }
+
+  // Weekly leaderboard in localStorage
+  function updateWeeklyLeaderboard(userId, username, score) {
+    const now = new Date();
+    const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
+    const weekKey = `snake_leaderboard_${weekStart.toISOString().slice(0, 10)}`;
+    
+    let leaderboard = JSON.parse(localStorage.getItem(weekKey)) || [];
+    
+    // Check if user already has a score this week
+    const userIndex = leaderboard.findIndex(entry => entry.userId === userId);
+    
+    if (userIndex !== -1) {
+      // Update if new score is higher
+      if (score > leaderboard[userIndex].score) {
+        leaderboard[userIndex].score = score;
+      }
+    } else {
+      // Add new entry
       leaderboard.push({
-        rank: i,
-        username: i === 1 ? 'BestPlayer' : `Player${i}`,
-        score: Math.floor(Math.random() * 1000) + 1000 - i*10,
-        isCurrentUser: i === 50 // Just for demo, in real app would compare user IDs
+        userId,
+        username,
+        score
       });
     }
-    return leaderboard.sort((a, b) => b.score - a.score);
+    
+    // Sort by score descending
+    leaderboard.sort((a, b) => b.score - a.score);
+    
+    // Keep only top 100
+    if (leaderboard.length > 100) {
+      leaderboard = leaderboard.slice(0, 100);
+    }
+    
+    localStorage.setItem(weekKey, JSON.stringify(leaderboard));
+  }
+
+  // Get current week's leaderboard
+  function getWeeklyLeaderboard() {
+    const now = new Date();
+    const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
+    const weekKey = `snake_leaderboard_${weekStart.toISOString().slice(0, 10)}`;
+    
+    return JSON.parse(localStorage.getItem(weekKey)) || [];
   }
 
   // Display leaderboard
   function displayLeaderboard() {
-    const leaderboard = generateLeaderboard();
+    const leaderboard = getWeeklyLeaderboard();
     const leaderboardElement = document.getElementById('leaderboard');
     leaderboardElement.innerHTML = '';
     
+    const userData = getTelegramUserData();
+    
+    if (leaderboard.length === 0) {
+      leaderboardElement.innerHTML = '<p>No players yet this week!</p>';
+      return;
+    }
+    
     leaderboard.forEach((player, index) => {
       const entry = document.createElement('div');
-      entry.className = `leaderboard-entry ${player.isCurrentUser ? 'current-user' : ''}`;
+      entry.className = `leaderboard-entry ${player.userId === userData.id ? 'current-user' : ''}`;
       entry.innerHTML = `
-        <span>${index + 1}. ${player.username}</span>
+        <span>${index + 1}. ${player.username || 'Anonymous'}</span>
         <span>${player.score}</span>
       `;
-      if (player.isCurrentUser) {
-        entry.style.color = 'crimson';
-        document.getElementById('userRank').textContent = index + 1;
-      }
       leaderboardElement.appendChild(entry);
     });
   }
@@ -297,13 +379,13 @@
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw snake
+    // Draw snake (all parts in matrix color)
     for (let i = 0; i < snake.length; i++) {
-      ctx.fillStyle = i === 0 ? 'darkred' : 'crimson';
+      ctx.fillStyle = 'crimson';
       ctx.fillRect(snake[i].x, snake[i].y, box, box);
     }
 
-    // Draw food
+    // Draw food (white)
     ctx.fillStyle = '#fff';
     ctx.fillRect(food.x, food.y, box, box);
 
@@ -325,13 +407,13 @@
       return;
     }
 
-    // Eat food
+    // Eat food - 3 points per food
     if (headX === food.x && headY === food.y) {
       food = {
         x: Math.floor(Math.random() * 20) * box,
         y: Math.floor(Math.random() * 20) * box,
       };
-      score += 10;
+      score += 3;
     } else {
       snake.pop();
     }
@@ -344,8 +426,11 @@
     clearInterval(gameLoop);
     matrixInterval = setInterval(drawMatrix, 50);
     gameOverText.style.display = 'block';
-    gamesPlayed++;
-    document.getElementById('gamesPlayed').textContent = gamesPlayed;
+    
+    // Save game results
+    saveUserData(score);
+    
+    // Update UI
     updateUserInfo();
     displayLeaderboard();
   }
@@ -402,6 +487,21 @@
   // Initialize
   updateUserInfo();
   displayLeaderboard();
+
+  // Telegram WebApp integration
+  document.addEventListener('DOMContentLoaded', () => {
+    if (window.Telegram && window.Telegram.WebApp) {
+      // Expand the app to full view
+      window.Telegram.WebApp.expand();
+      
+      // Set up theme colors
+      const theme = window.Telegram.WebApp.colorScheme;
+      document.documentElement.style.setProperty('--tg-theme', theme === 'dark' ? '#000' : '#fff');
+      
+      // Update user info with real Telegram data
+      updateUserInfo();
+    }
+  });
 </script>
 </body>
 </html>
