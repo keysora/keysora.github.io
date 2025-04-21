@@ -134,11 +134,13 @@
       <button class="control-btn" onclick="setDirection('up')">⬆</button>
     </div>
     <div class="row">
-      <button class="control-btn" onclick="setDirection('left')">⬅</button>
-      <button class="control-btn" onclick="setDirection('down')">⬇</button>
-      <button class="control-btn" onclick="setDirection('right')">➡</button>
-    </div>
-  </div>
+  <button class="control-btn" data-dir="up">⬆</button>
+</div>
+<div class="row">
+  <button class="control-btn" data-dir="left">⬅</button>
+  <button class="control-btn" data-dir="down">⬇</button>
+  <button class="control-btn" data-dir="right">➡</button>
+</div>
 
 <script>
   const canvas = document.getElementById('game');
