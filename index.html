@@ -15,19 +15,19 @@
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      position: relative;
-      overflow: hidden;
     }
     canvas {
       background: #000;
       margin-top: 20px;
-      z-index: 2;
+      position: relative;
+      z-index: 0;
     }
     .menu, .account-popup, .leaderboard-popup {
       margin-top: 20px;
       display: flex;
       gap: 10px;
-      z-index: 3;
+      position: relative;
+      z-index: 1;
     }
     .button, .control-btn {
       padding: 10px 20px;
@@ -64,26 +64,25 @@
       display: none;
       flex-direction: column;
       gap: 10px;
-      z-index: 4;
+      z-index: 2;
     }
-    .popup .close-btn {
+    .popup input {
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+    }
+    .close-btn {
       align-self: flex-end;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5em;
       cursor: pointer;
-      font-size: 18px;
-      color: crimson;
-    }
-    #matrixCanvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 1;
-      pointer-events: none;
     }
   </style>
 </head>
 <body>
   <h1>Snake Game</h1>
-  <canvas id="matrixCanvas"></canvas>
   <canvas id="game" width="400" height="400"></canvas>
 
   <div class="menu">
@@ -93,16 +92,16 @@
   </div>
 
   <div id="account-popup" class="popup">
-    <span class="close-btn" onclick="togglePopup('account-popup')">✖</span>
+    <button class="close-btn" onclick="togglePopup('account-popup')">✖</button>
     <p><b>ID:</b> <span id="userId"></span></p>
-    <p><b>Username:</b> <span id="username"></span></p>
-    <p><b>Name:</b> <span id="name"></span></p>
+    <p><b>Username:</b> <span id="userUsername"></span></p>
+    <p><b>Name:</b> <span id="userName"></span></p>
     <p><b>Games played:</b> <span id="gamesPlayed">0</span></p>
     <p><b>Your rank:</b> <span id="userRank">???</span></p>
   </div>
 
   <div id="leaderboard-popup" class="popup">
-    <span class="close-btn" onclick="togglePopup('leaderboard-popup')">✖</span>
+    <button class="close-btn" onclick="togglePopup('leaderboard-popup')">✖</button>
     <div id="leaderboard">Loading...</div>
   </div>
 
@@ -118,32 +117,29 @@
   </div>
 
   <script>
-    const matrixCanvas = document.getElementById("matrixCanvas");
-    const matrixCtx = matrixCanvas.getContext("2d");
-    matrixCanvas.width = window.innerWidth;
-    matrixCanvas.height = window.innerHeight;
+    // Placeholder for user data setup
+    const userId = Math.floor(10000 + Math.random() * 90000);
+    const userUsername = "@example_user"; // To be pulled from Telegram
+    const userName = "Example Name"; // To be pulled from Telegram
 
-    const cols = Math.floor(matrixCanvas.width / 20);
-    const drops = Array(cols).fill(1);
+    document.getElementById("userId").innerText = userId;
+    document.getElementById("userUsername").innerText = userUsername;
+    document.getElementById("userName").innerText = userName;
 
-    function drawMatrix() {
-      matrixCtx.fillStyle = "rgba(0, 0, 0, 0.05)";
-      matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
-      matrixCtx.fillStyle = "red";
-      matrixCtx.font = "15px monospace";
-      for (let i = 0; i < drops.length; i++) {
-        const text = Math.floor(Math.random() * 10);
-        matrixCtx.fillText(text, i * 20, drops[i] * 20);
-        if (drops[i] * 20 > matrixCanvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
-        }
-        drops[i]++;
-      }
+    function togglePopup(id) {
+      const popup = document.getElementById(id);
+      popup.style.display = popup.style.display === 'flex' ? 'none' : 'flex';
     }
 
-    setInterval(drawMatrix, 33);
+    function startGame() {
+      console.log("Starting game...");
+      // Game logic will go here
+    }
 
-    // Далее основной JS для игры и логики popup (будет продолжение)
+    function setDirection(dir) {
+      console.log("Direction set to", dir);
+    }
   </script>
 </body>
 </html>
+
