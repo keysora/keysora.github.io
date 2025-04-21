@@ -1,160 +1,184 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Snake Game</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #000;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    canvas {
-      background-color: #111;
-      margin-top: 20px;
-      image-rendering: pixelated;
-    }
-    #menu {
-      margin-top: 20px;
-    }
-    .menu-button {
-      margin: 5px;
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    #mobile-controls {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      margin-top: 20px;
-    }
-    .mobile-row {
-      display: flex;
-      justify-content: center;
-    }
-    .control-button {
-      width: 60px;
-      height: 60px;
-      margin: 5px;
-      font-size: 24px;
-      font-weight: bold;
-      background-color: #222;
-      color: white;
-      border: 2px solid white;
-      border-radius: 10px;
-    }
-    @media (max-width: 768px) {
-      #mobile-controls {
-        display: flex;
-      }
-    }
-  </style>
-</head>
-<body>
-  <h1>Snake Game</h1>
-  <canvas id="game" width="400" height="400"></canvas>
-  <div id="menu">
-    <button class="menu-button" onclick="startGame()">/play</button>
-    <button class="menu-button">/account</button>
-    <button class="menu-button">/top players this week</button>
-  </div>
 
-  <div id="mobile-controls">
-    <div class="mobile-row">
-      <button class="control-button" onclick="changeDirection('up')">⬆️</button>
-    </div>
-    <div class="mobile-row">
-      <button class="control-button" onclick="changeDirection('left')">⬅️</button>
-      <button class="control-button" onclick="changeDirection('down')">⬇️</button>
-      <button class="control-button" onclick="changeDirection('right')">➡️</button>
-    </div>
-  </div>
+import React, { useState, useEffect } from "react";
 
-  <script>
-    const canvas = document.getElementById('game');
-    const ctx = canvas.getContext('2d');
-    const box = 20;
-    let snake = [{ x: 9 * box, y: 10 * box }];
-    let food = randomPosition();
-    let direction = null;
-    let gameInterval;
+const gridSize = 20;
+const initialSnake = [
+  { x: 5, y: 5 },
+  { x: 4, y: 5 }
+];
 
-    function randomPosition() {
-      return {
-        x: Math.floor(Math.random() * (canvas.width / box)) * box,
-        y: Math.floor(Math.random() * (canvas.height / box)) * box,
+const getRandomFood = () => ({
+  x: Math.floor(Math.random() * gridSize),
+  y: Math.floor(Math.random() * gridSize)
+});
+
+export default function SnakeGame() {
+  const [snake, setSnake] = useState(initialSnake);
+  const [direction, setDirection] = useState("RIGHT");
+  const [food, setFood] = useState(getRandomFood());
+  const [gameOver, setGameOver] = useState(false);
+  const [showMenu, setShowMenu] = useState(true);
+  const [userId] = useState(Math.floor(Math.random() * 100000));
+  const [gamesPlayed, setGamesPlayed] = useState(0);
+  const [username, setUsername] = useState("");
+  const [topPlayers, setTopPlayers] = useState([]);
+  const [view, setView] = useState("menu");
+
+  useEffect(() => {
+    if (view === "game") {
+      const handleKeyDown = (e) => {
+        switch (e.key) {
+          case "ArrowUp": setDirection("UP"); break;
+          case "ArrowDown": setDirection("DOWN"); break;
+          case "ArrowLeft": setDirection("LEFT"); break;
+          case "ArrowRight": setDirection("RIGHT"); break;
+        }
       };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
     }
+  }, [view]);
 
-    function drawGame() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'red';
-      snake.forEach(part => ctx.fillRect(part.x, part.y, box, box));
-      ctx.fillStyle = 'white';
-      ctx.fillRect(food.x, food.y, box, box);
+  useEffect(() => {
+    if (view === "game" && !gameOver) {
+      const move = setInterval(() => {
+        setSnake((prev) => {
+          const head = { ...prev[0] };
+          if (direction === "UP") head.y -= 1;
+          if (direction === "DOWN") head.y += 1;
+          if (direction === "LEFT") head.x -= 1;
+          if (direction === "RIGHT") head.x += 1;
+
+          if (
+            head.x < 0 ||
+            head.y < 0 ||
+            head.x >= gridSize ||
+            head.y >= gridSize ||
+            prev.some(segment => segment.x === head.x && segment.y === head.y)
+          ) {
+            setGameOver(true);
+            setGamesPlayed(g => g + 1);
+            return prev;
+          }
+
+          const newSnake = [head, ...prev];
+          if (head.x === food.x && head.y === food.y) {
+            setFood(getRandomFood());
+            return newSnake;
+          }
+          newSnake.pop();
+          return newSnake;
+        });
+      }, 150);
+      return () => clearInterval(move);
     }
+  }, [direction, food, gameOver, view]);
 
-    function updateGame() {
-      const head = { ...snake[0] };
-      if (!direction) return;
+  const renderCell = (x, y) => {
+    const isSnake = snake.some(s => s.x === x && s.y === y);
+    const isFood = food.x === x && food.y === y;
+    const bg = isSnake ? "bg-red-600" : isFood ? "bg-white" : "bg-gray-800";
+    return <div key={`${x}-${y}`} className={`w-4 h-4 ${bg} border border-gray-900`} />;
+  };
 
-      if (direction === 'left') head.x -= box;
-      if (direction === 'up') head.y -= box;
-      if (direction === 'right') head.x += box;
-      if (direction === 'down') head.y += box;
+  const handleStart = () => {
+    setSnake(initialSnake);
+    setDirection("RIGHT");
+    setFood(getRandomFood());
+    setGameOver(false);
+    setShowMenu(false);
+    setView("game");
+  };
 
-      if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height || snake.some(part => part.x === head.x && part.y === head.y)) {
-        clearInterval(gameInterval);
-        ctx.fillStyle = 'white';
-        ctx.font = '30px Arial';
-        ctx.fillText('Game Over', canvas.width / 2 - 80, canvas.height / 2);
-        document.getElementById('menu').style.display = 'block';
-        return;
-      }
+  const renderMobileControls = () => (
+    <div className="flex flex-col items-center gap-2 mt-4 md:hidden">
+      <button onClick={() => setDirection("UP")} className="bg-white text-black p-2 px-4 rounded">↑</button>
+      <div className="flex gap-4">
+        <button onClick={() => setDirection("LEFT")} className="bg-white text-black p-2 px-4 rounded">←</button>
+        <button onClick={() => setDirection("RIGHT")} className="bg-white text-black p-2 px-4 rounded">→</button>
+      </div>
+      <button onClick={() => setDirection("DOWN")} className="bg-white text-black p-2 px-4 rounded">↓</button>
+    </div>
+  );
 
-      snake.unshift(head);
-
-      if (head.x === food.x && head.y === food.y) {
-        food = randomPosition();
-      } else {
-        snake.pop();
-      }
-
-      drawGame();
+  const handleMenuClick = (option) => {
+    if (option === "/play") handleStart();
+    else if (option === "/account") setView("account");
+    else if (option === "/top") {
+      // Simulated top player data
+      setTopPlayers([
+        { id: 12345, name: "Neo" },
+        { id: 67890, name: "Trinity" },
+        { id: 54321, name: null }
+      ]);
+      setView("top");
     }
+  };
 
-    function startGame() {
-      snake = [{ x: 9 * box, y: 10 * box }];
-      food = randomPosition();
-      direction = null;
-      document.getElementById('menu').style.display = 'none';
-      drawGame();
-      gameInterval = setInterval(updateGame, 150);
-    }
+  return (
+    <div className="flex flex-col items-center p-4 text-white font-mono">
+      <h1 className="text-2xl mb-4">Snake Game</h1>
 
-    function changeDirection(dir) {
-      if (
-        (dir === 'left' && direction !== 'right') ||
-        (dir === 'right' && direction !== 'left') ||
-        (dir === 'up' && direction !== 'down') ||
-        (dir === 'down' && direction !== 'up')
-      ) {
-        direction = dir;
-      }
-    }
+      {view === "menu" && (
+        <div className="flex flex-col gap-2">
+          <button onClick={() => handleMenuClick("/play")} className="bg-blue-500 px-4 py-2 rounded">/play</button>
+          <button onClick={() => handleMenuClick("/account")} className="bg-blue-500 px-4 py-2 rounded">/account</button>
+          <button onClick={() => handleMenuClick("/top")} className="bg-blue-500 px-4 py-2 rounded">/top players this week</button>
+        </div>
+      )}
 
-    document.addEventListener('keydown', event => {
-      if (event.key === 'ArrowLeft') changeDirection('left');
-      if (event.key === 'ArrowUp') changeDirection('up');
-      if (event.key === 'ArrowRight') changeDirection('right');
-      if (event.key === 'ArrowDown') changeDirection('down');
-    });
-  </script>
-</body>
-</html>
+      {view === "account" && (
+        <div className="bg-gray-900 p-4 rounded shadow-lg text-left w-full max-w-sm">
+          <p><b>User ID:</b> {userId}</p>
+          <p><b>Games Played:</b> {gamesPlayed}</p>
+          <p><b>Your Rank:</b> #{Math.floor(1000 - gamesPlayed)}</p>
+          <p><b>Username:</b></p>
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value.slice(0, 10))}
+            placeholder="Enter name (3-10 chars)"
+            className="w-full p-2 mt-1 text-black"
+          />
+          <button onClick={() => setView("menu")} className="mt-4 bg-blue-500 px-4 py-1 rounded">Back</button>
+        </div>
+      )}
+
+      {view === "top" && (
+        <div className="bg-gray-900 p-4 rounded shadow-lg w-full max-w-sm">
+          <h2 className="text-xl mb-2">Top Players</h2>
+          <ul className="list-disc list-inside">
+            {topPlayers.map((player, i) => (
+              <li key={i}>{player.name ? `${player.name} (${player.id})` : `ID: ${player.id}`}</li>
+            ))}
+          </ul>
+          <button onClick={() => setView("menu")} className="mt-4 bg-blue-500 px-4 py-1 rounded">Back</button>
+        </div>
+      )}
+
+      {view === "game" && (
+        <>
+          <div
+            className="grid grid-cols-20 gap-0.5 bg-black"
+            style={{ width: gridSize * 16, height: gridSize * 16 }}
+          >
+            {[...Array(gridSize)].map((_, y) =>
+              [...Array(gridSize)].map((_, x) => renderCell(x, y))
+            )}
+          </div>
+          {renderMobileControls()}
+          {gameOver && (
+            <div className="mt-4 text-center">
+              <p className="text-lg text-red-400 font-bold">Game Over</p>
+              <div className="flex flex-col gap-2 mt-2">
+                <button onClick={() => handleMenuClick("/play")} className="bg-blue-500 px-4 py-2 rounded">/play</button>
+                <button onClick={() => handleMenuClick("/account")} className="bg-blue-500 px-4 py-2 rounded">/account</button>
+                <button onClick={() => handleMenuClick("/top")} className="bg-blue-500 px-4 py-2 rounded">/top players this week</button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
