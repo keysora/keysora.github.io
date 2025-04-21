@@ -1,98 +1,149 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Snake Game</title>
-  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
   <style>
     body {
       margin: 0;
-      font-family: 'VT323', monospace;
-      background: black;
+      padding: 0;
+      font-family: sans-serif;
+      background-color: #111;
       color: white;
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: flex-start;
+      position: relative;
+      overflow: hidden;
     }
     canvas {
-      background: #111;
-      display: block;
-      margin: 20px auto;
+      background: #000;
+      margin-top: 20px;
+      z-index: 2;
     }
-    .menu, .account, .top-players {
-      background: rgba(0, 0, 0, 0.85);
-      border: 2px solid red;
-      border-radius: 10px;
-      padding: 10px;
-      margin-top: 10px;
-      display: none;
-      text-align: center;
+    .menu, .account-popup, .leaderboard-popup {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      z-index: 3;
     }
-    .menu button, .account button, .top-players button {
-      font-size: 20px;
-      margin: 5px;
-      background: #222;
-      color: white;
-      border: 1px solid red;
-      border-radius: 5px;
+    .button, .control-btn {
       padding: 10px 20px;
+      background-color: crimson;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1em;
     }
-    .controls {
+    .mobile-controls {
       display: none;
+      flex-direction: column;
+      margin-top: 20px;
     }
-    @media (max-width: 600px) {
-      .controls {
+    .mobile-controls .row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    @media (max-width: 768px) {
+      .mobile-controls {
         display: flex;
-        justify-content: center;
-        gap: 20px;
-        flex-wrap: wrap;
-      }
-      .controls button {
-        font-size: 30px;
-        padding: 15px;
       }
     }
-    #matrixEffect {
+    .popup {
+      position: absolute;
+      top: 100px;
+      background: rgba(0, 0, 0, 0.9);
+      padding: 20px;
+      border: 2px solid red;
+      border-radius: 15px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 4;
+    }
+    .popup .close-btn {
+      align-self: flex-end;
+      cursor: pointer;
+      font-size: 18px;
+      color: crimson;
+    }
+    #matrixCanvas {
       position: absolute;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
+      z-index: 1;
+      pointer-events: none;
     }
   </style>
 </head>
 <body>
+  <h1>Snake Game</h1>
+  <canvas id="matrixCanvas"></canvas>
   <canvas id="game" width="400" height="400"></canvas>
-  <canvas id="matrixEffect"></canvas>
-  <div class="menu" id="mainMenu">
-    <button onclick="startGame()">Play</button>
-    <button onclick="toggleAccount()">Account</button>
-    <button onclick="toggleTopPlayers()">Top players this week</button>
+
+  <div class="menu">
+    <button class="button" onclick="startGame()">Play</button>
+    <button class="button" onclick="togglePopup('account-popup')">Account</button>
+    <button class="button" onclick="togglePopup('leaderboard-popup')">Top players this week</button>
   </div>
 
-  <div class="account" id="account">
-    <button onclick="closeAccount()">✖</button>
-    <p>User ID: <span id="userId">XXXXX</span></p>
-    <p>Username: <span id="username">@unknown</span></p>
-    <p>Games played: <span id="games">0</span></p>
-    <p>Rank: <span id="rank">N/A</span></p>
+  <div id="account-popup" class="popup">
+    <span class="close-btn" onclick="togglePopup('account-popup')">✖</span>
+    <p><b>ID:</b> <span id="userId"></span></p>
+    <p><b>Username:</b> <span id="username"></span></p>
+    <p><b>Name:</b> <span id="name"></span></p>
+    <p><b>Games played:</b> <span id="gamesPlayed">0</span></p>
+    <p><b>Your rank:</b> <span id="userRank">???</span></p>
   </div>
 
-  <div class="top-players" id="topPlayers">
-    <button onclick="closeTopPlayers()">✖</button>
-    <ul id="leaderboard"></ul>
+  <div id="leaderboard-popup" class="popup">
+    <span class="close-btn" onclick="togglePopup('leaderboard-popup')">✖</span>
+    <div id="leaderboard">Loading...</div>
   </div>
 
-  <div class="controls">
-    <button onclick="setDirection('up')">↑</button>
-    <button onclick="setDirection('left')">←</button>
-    <button onclick="setDirection('down')">↓</button>
-    <button onclick="setDirection('right')">→</button>
+  <div class="mobile-controls">
+    <div class="row">
+      <button class="control-btn" onclick="setDirection('up')">⬆</button>
+    </div>
+    <div class="row">
+      <button class="control-btn" onclick="setDirection('left')">⬅</button>
+      <button class="control-btn" onclick="setDirection('down')">⬇</button>
+      <button class="control-btn" onclick="setDirection('right')">➡</button>
+    </div>
   </div>
 
-  <script src="matrix.js"></script>
-  <script src="snake.js"></script>
+  <script>
+    const matrixCanvas = document.getElementById("matrixCanvas");
+    const matrixCtx = matrixCanvas.getContext("2d");
+    matrixCanvas.width = window.innerWidth;
+    matrixCanvas.height = window.innerHeight;
+
+    const cols = Math.floor(matrixCanvas.width / 20);
+    const drops = Array(cols).fill(1);
+
+    function drawMatrix() {
+      matrixCtx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+      matrixCtx.fillStyle = "red";
+      matrixCtx.font = "15px monospace";
+      for (let i = 0; i < drops.length; i++) {
+        const text = Math.floor(Math.random() * 10);
+        matrixCtx.fillText(text, i * 20, drops[i] * 20);
+        if (drops[i] * 20 > matrixCanvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    }
+
+    setInterval(drawMatrix, 33);
+
+    // Далее основной JS для игры и логики popup (будет продолжение)
+  </script>
 </body>
 </html>
