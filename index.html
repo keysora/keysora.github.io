@@ -140,7 +140,7 @@
     </div>
   </div>
 
- <script>
+<script>
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
 
@@ -150,18 +150,20 @@
   let food;
   let gameLoop;
   const gameOverText = document.getElementById('game-over-text');
+
+  // Matrix setup
   const matrixCanvas = document.getElementById('matrix');
   const matrixCtx = matrixCanvas.getContext('2d');
   matrixCanvas.width = window.innerWidth;
   matrixCanvas.height = window.innerHeight;
 
-  // Basic matrix background
   const matrixColumns = Math.floor(matrixCanvas.width / 10);
   const drops = Array(matrixColumns).fill(1);
+
   function drawMatrix() {
     matrixCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
     matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
-    matrixCtx.fillStyle = '#0F0';
+    matrixCtx.fillStyle = 'crimson';
     matrixCtx.font = '10px monospace';
 
     for (let i = 0; i < drops.length; i++) {
@@ -171,10 +173,13 @@
       drops[i]++;
     }
   }
+
   let matrixInterval = setInterval(drawMatrix, 50);
 
   function startGame() {
-    clearInterval(matrixInterval); // Hide matrix during game
+    clearInterval(matrixInterval);
+    matrixCtx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+
     gameOverText.style.display = 'none';
     snake = [{x: 9 * box, y: 10 * box}];
     direction = 'right';
@@ -201,7 +206,6 @@
     ctx.fillStyle = '#fff';
     ctx.fillRect(food.x, food.y, box, box);
 
-    // Head position
     let headX = snake[0].x;
     let headY = snake[0].y;
 
@@ -210,16 +214,19 @@
     if (direction === 'up') headY -= box;
     if (direction === 'down') headY += box;
 
-    // Collision with walls
-    if (headX < 0 || headX >= canvas.width || headY < 0 || headY >= canvas.height || collision({x: headX, y: headY}, snake)) {
+    // Collision
+    if (
+      headX < 0 || headX >= canvas.width ||
+      headY < 0 || headY >= canvas.height ||
+      collision({x: headX, y: headY}, snake)
+    ) {
       clearInterval(gameLoop);
-      matrixInterval = setInterval(drawMatrix, 50); // Show matrix again
+      matrixInterval = setInterval(drawMatrix, 50); // Matrix reappears
       gameOverText.style.display = 'block';
       return;
     }
 
     // Eat food
-    let newHead;
     if (headX === food.x && headY === food.y) {
       food = {
         x: Math.floor(Math.random() * 20) * box,
@@ -229,7 +236,7 @@
       snake.pop();
     }
 
-    newHead = {x: headX, y: headY};
+    const newHead = {x: headX, y: headY};
     snake.unshift(newHead);
   }
 
@@ -242,6 +249,7 @@
     return false;
   }
 
+  // PC Controls
   document.addEventListener('keydown', e => {
     if (e.key === 'ArrowLeft' && direction !== 'right') direction = 'left';
     else if (e.key === 'ArrowUp' && direction !== 'down') direction = 'up';
@@ -249,7 +257,7 @@
     else if (e.key === 'ArrowDown' && direction !== 'up') direction = 'down';
   });
 
-  // Mobile controls
+  // Touch Controls — no delay
   function setDirection(dir) {
     if (dir === 'left' && direction !== 'right') direction = 'left';
     else if (dir === 'up' && direction !== 'down') direction = 'up';
@@ -257,11 +265,10 @@
     else if (dir === 'down' && direction !== 'up') direction = 'down';
   }
 
-  // Popup toggles
-  function togglePopup(id) {
-    const popup = document.getElementById(id);
-    popup.style.display = popup.style.display === 'flex' ? 'none' : 'flex';
-  }
+  document.querySelectorAll('.control-btn').forEach(btn => {
+    btn.addEventListener('touchstart', () => setDirection(btn.dataset.dir));
+    btn.addEventListener('mousedown', () => setDirection(btn.dataset.dir));
+  });
 </script>
 </body>
 </html>
