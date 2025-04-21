@@ -12,11 +12,14 @@
       background-color: #000;
       color: white;
       overflow: hidden;
+      position: relative;
     }
     canvas {
       display: block;
       margin: 20px auto;
       background: #000;
+      position: relative;
+      z-index: 1;
     }
     .menu, .account-popup, .leaderboard-popup {
       margin-top: 20px;
@@ -62,16 +65,27 @@
       display: none;
       flex-direction: column;
       gap: 10px;
+      z-index: 2;
     }
     .close-btn {
       align-self: flex-end;
       cursor: pointer;
       color: red;
     }
+    #matrix-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
-  <h1 style="text-align: center">Snake Game</h1>
+  <canvas id="matrix-canvas"></canvas>
+  <h1 style="text-align: center; z-index: 2; position: relative;">Snake Game</h1>
   <canvas id="game" width="400" height="400"></canvas>
 
   <div class="menu">
@@ -104,278 +118,133 @@
     </div>
   </div>
 
-<script>
-  const canvas = document.getElementById("game");
-  const ctx = canvas.getContext("2d");
-  const box = 20;
-  const rows = canvas.height / box;
-  const cols = canvas.width / box;
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const matrixCanvas = document.getElementById("matrix-canvas");
+    const matrixCtx = matrixCanvas.getContext("2d");
+    matrixCanvas.width = window.innerWidth;
+    matrixCanvas.height = window.innerHeight;
 
-  let snake = [{ x: 9, y: 9 }];
-  let food = { x: 5, y: 5 };
-  let direction = "right";
-  let score = 0;
-  let interval;
-  let playing = false;
+    const box = 20;
+    const rows = canvas.height / box;
+    const cols = canvas.width / box;
 
-  const userId = Math.floor(10000 + Math.random() * 90000);
-  document.getElementById("userId").textContent = userId;
-  document.getElementById("username").textContent = "TelegramUser"; // сюда потом вставим имя из Telegram API
+    let snake = [{ x: 9, y: 9 }];
+    let food = { x: 5, y: 5 };
+    let direction = "right";
+    let score = 0;
+    let interval;
+    let playing = false;
+    let lastDirection = "right";
 
-  function startGame() {
-    playing = true;
-    direction = "right";
-    score = 0;
-    snake = [{ x: 9, y: 9 }];
-    placeFood();
-    clearInterval(interval);
-    interval = setInterval(draw, 150);
-  }
+    const userId = Math.floor(10000 + Math.random() * 90000);
+    document.getElementById("userId").textContent = userId;
+    document.getElementById("username").textContent = "TelegramUser";
 
-  function placeFood() {
-    food = {
-      x: Math.floor(Math.random() * cols),
-      y: Math.floor(Math.random() * rows)
-    };
-  }
-
-  function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Отрисовка еды (белой)
-    ctx.fillStyle = "white";
-    ctx.fillRect(food.x * box, food.y * box, box, box);
-
-    // Отрисовка змейки (красной)
-    for (let i = 0; i < snake.length; i++) {
-      ctx.fillStyle = "crimson";
-      ctx.fillRect(snake[i].x * box, snake[i].y * box, box, box);
-    }
-
-    // Движение змейки
-    let head = { ...snake[0] };
-    if (direction === "left") head.x--;
-    if (direction === "right") head.x++;
-    if (direction === "up") head.y--;
-    if (direction === "down") head.y++;
-
-    // Проверка на смерть
-    if (
-      head.x < 0 ||
-      head.x >= cols ||
-      head.y < 0 ||
-      head.y >= rows ||
-      collision(head, snake)
-    ) {
-      clearInterval(interval);
-      playing = false;
-      showMatrix();
-      return;
-    }
-
-    snake.unshift(head);
-
-    // Съела еду?
-    if (head.x === food.x && head.y === food.y) {
-      score++;
+    function startGame() {
+      playing = true;
+      direction = "right";
+      score = 0;
+      snake = [{ x: 9, y: 9 }];
       placeFood();
-    } else {
-      snake.pop();
+      clearInterval(interval);
+      interval = setInterval(draw, 150);
     }
-  }
 
-  function collision(head, array) {
-    return array.some((segment, index) => index !== 0 && segment.x === head.x && segment.y === head.y);
-  }
-
-  function setDirection(dir) {
-    if (
-      (dir === "left" && direction !== "right") ||
-      (dir === "right" && direction !== "left") ||
-      (dir === "up" && direction !== "down") ||
-      (dir === "down" && direction !== "up")
-    ) {
-      direction = dir;
+    function placeFood() {
+      food = {
+        x: Math.floor(Math.random() * cols),
+        y: Math.floor(Math.random() * rows)
+      };
     }
-  }
 
-  function togglePopup(id) {
-    const popup = document.getElementById(id);
-    popup.style.display = popup.style.display === "flex" ? "none" : "flex";
-  }
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "white";
+      ctx.fillRect(food.x * box, food.y * box, box, box);
 
-  // Матрица, когда игра не идёт
-  let matrixSymbols = [];
+      for (let i = 0; i < snake.length; i++) {
+        ctx.fillStyle = "crimson";
+        ctx.fillRect(snake[i].x * box, snake[i].y * box, box, box);
+      }
 
-  for (let i = 0; i < 100; i++) {
-    matrixSymbols.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      speed: Math.random() * 3 + 1,
-      text: Math.floor(Math.random() * 10)
-    });
-  }
+      let head = { ...snake[0] };
+      if (direction === "left") head.x--;
+      if (direction === "right") head.x++;
+      if (direction === "up") head.y--;
+      if (direction === "down") head.y++;
 
-  function showMatrix() {
-    const matrixInterval = setInterval(() => {
-      if (playing) {
-        clearInterval(matrixInterval);
+      if (
+        head.x < 0 || head.x >= cols ||
+        head.y < 0 || head.y >= rows ||
+        collision(head, snake)
+      ) {
+        clearInterval(interval);
+        playing = false;
+        ctx.fillStyle = "red";
+        ctx.font = "40px Arial";
+        ctx.fillText("GAME OVER", 80, 200);
         return;
       }
-      ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "crimson";
-      ctx.font = "20px monospace";
-      matrixSymbols.forEach(symbol => {
-        ctx.fillText(symbol.text, symbol.x, symbol.y);
-        symbol.y += symbol.speed;
-        if (symbol.y > canvas.height) {
-          symbol.y = 0;
-          symbol.x = Math.random() * canvas.width;
-          symbol.text = Math.floor(Math.random() * 10);
-        }
-      });
-    }, 50);
-  }
 
-  // Показываем матрицу изначально
-  showMatrix();
-</script><script>
-  const canvas = document.getElementById("game");
-  const ctx = canvas.getContext("2d");
-  const box = 20;
-  const rows = canvas.height / box;
-  const cols = canvas.width / box;
+      snake.unshift(head);
 
-  let snake = [{ x: 9, y: 9 }];
-  let food = { x: 5, y: 5 };
-  let direction = "right";
-  let score = 0;
-  let interval;
-  let playing = false;
+      if (head.x === food.x && head.y === food.y) {
+        score++;
+        placeFood();
+      } else {
+        snake.pop();
+      }
 
-  const userId = Math.floor(10000 + Math.random() * 90000);
-  document.getElementById("userId").textContent = userId;
-  document.getElementById("username").textContent = "TelegramUser"; // сюда потом вставим имя из Telegram API
-
-  function startGame() {
-    playing = true;
-    direction = "right";
-    score = 0;
-    snake = [{ x: 9, y: 9 }];
-    placeFood();
-    clearInterval(interval);
-    interval = setInterval(draw, 150);
-  }
-
-  function placeFood() {
-    food = {
-      x: Math.floor(Math.random() * cols),
-      y: Math.floor(Math.random() * rows)
-    };
-  }
-
-  function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Отрисовка еды (белой)
-    ctx.fillStyle = "white";
-    ctx.fillRect(food.x * box, food.y * box, box, box);
-
-    // Отрисовка змейки (красной)
-    for (let i = 0; i < snake.length; i++) {
-      ctx.fillStyle = "crimson";
-      ctx.fillRect(snake[i].x * box, snake[i].y * box, box, box);
+      lastDirection = direction;
     }
 
-    // Движение змейки
-    let head = { ...snake[0] };
-    if (direction === "left") head.x--;
-    if (direction === "right") head.x++;
-    if (direction === "up") head.y--;
-    if (direction === "down") head.y++;
-
-    // Проверка на смерть
-    if (
-      head.x < 0 ||
-      head.x >= cols ||
-      head.y < 0 ||
-      head.y >= rows ||
-      collision(head, snake)
-    ) {
-      clearInterval(interval);
-      playing = false;
-      showMatrix();
-      return;
+    function collision(head, array) {
+      return array.some((seg, index) => index !== 0 && seg.x === head.x && seg.y === head.y);
     }
 
-    snake.unshift(head);
-
-    // Съела еду?
-    if (head.x === food.x && head.y === food.y) {
-      score++;
-      placeFood();
-    } else {
-      snake.pop();
-    }
-  }
-
-  function collision(head, array) {
-    return array.some((segment, index) => index !== 0 && segment.x === head.x && segment.y === head.y);
-  }
-
-  function setDirection(dir) {
-    if (
-      (dir === "left" && direction !== "right") ||
-      (dir === "right" && direction !== "left") ||
-      (dir === "up" && direction !== "down") ||
-      (dir === "down" && direction !== "up")
-    ) {
+    function setDirection(dir) {
       direction = dir;
     }
-  }
 
-  function togglePopup(id) {
-    const popup = document.getElementById(id);
-    popup.style.display = popup.style.display === "flex" ? "none" : "flex";
-  }
-
-  // Матрица, когда игра не идёт
-  let matrixSymbols = [];
-
-  for (let i = 0; i < 100; i++) {
-    matrixSymbols.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      speed: Math.random() * 3 + 1,
-      text: Math.floor(Math.random() * 10)
+    document.addEventListener("keydown", (e) => {
+      const key = e.key;
+      if (key === "ArrowLeft") direction = "left";
+      if (key === "ArrowRight") direction = "right";
+      if (key === "ArrowUp") direction = "up";
+      if (key === "ArrowDown") direction = "down";
     });
-  }
 
-  function showMatrix() {
-    const matrixInterval = setInterval(() => {
-      if (playing) {
-        clearInterval(matrixInterval);
-        return;
-      }
-      ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "crimson";
-      ctx.font = "20px monospace";
-      matrixSymbols.forEach(symbol => {
-        ctx.fillText(symbol.text, symbol.x, symbol.y);
-        symbol.y += symbol.speed;
-        if (symbol.y > canvas.height) {
-          symbol.y = 0;
-          symbol.x = Math.random() * canvas.width;
-          symbol.text = Math.floor(Math.random() * 10);
+    function togglePopup(id) {
+      const popup = document.getElementById(id);
+      popup.style.display = popup.style.display === "flex" ? "none" : "flex";
+    }
+
+    // Matrix background effect
+    const columns = Math.floor(matrixCanvas.width / 20);
+    const drops = Array(columns).fill(1);
+
+    function drawMatrix() {
+      if (playing) return;
+      matrixCtx.fillStyle = "rgba(0, 0, 0, 0.1)";
+      matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+
+      matrixCtx.fillStyle = "crimson";
+      matrixCtx.font = "20px monospace";
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = Math.floor(Math.random() * 10);
+        matrixCtx.fillText(text, i * 20, drops[i] * 20);
+
+        if (drops[i] * 20 > matrixCanvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
         }
-      });
-    }, 50);
-  }
-
-  // Показываем матрицу изначально
-  showMatrix();
-</script>
+        drops[i]++;
+      }
+    }
+    setInterval(drawMatrix, 50);
+  </script>
 </body>
 </html>
+
