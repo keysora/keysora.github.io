@@ -9,21 +9,20 @@
       margin: 0;
       padding: 0;
       font-family: sans-serif;
-      background-color: #111;
+      background-color: #000;
       color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      overflow: hidden;
     }
     canvas {
-      background: #000;
-      margin-top: 20px;
       display: block;
+      margin: 20px auto;
+      background: #000;
     }
     .menu, .account-popup, .leaderboard-popup {
       margin-top: 20px;
       display: flex;
       gap: 10px;
+      justify-content: center;
     }
     .button, .control-btn {
       padding: 10px 20px;
@@ -38,6 +37,7 @@
       display: none;
       flex-direction: column;
       margin-top: 20px;
+      align-items: center;
     }
     .mobile-controls .row {
       display: flex;
@@ -53,6 +53,8 @@
     .popup {
       position: absolute;
       top: 100px;
+      left: 50%;
+      transform: translateX(-50%);
       background: rgba(0, 0, 0, 0.9);
       padding: 20px;
       border: 2px solid red;
@@ -60,29 +62,17 @@
       display: none;
       flex-direction: column;
       gap: 10px;
-      z-index: 2;
     }
     .close-btn {
       align-self: flex-end;
       cursor: pointer;
-      font-size: 1.2em;
-      color: crimson;
-    }
-    canvas.matrix {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: 1;
-      pointer-events: none;
+      color: red;
     }
   </style>
 </head>
 <body>
-  <h1>Snake Game</h1>
+  <h1 style="text-align: center">Snake Game</h1>
   <canvas id="game" width="400" height="400"></canvas>
-  <canvas class="matrix" id="matrix"></canvas>
 
   <div class="menu">
     <button class="button" onclick="startGame()">Play</button>
@@ -92,8 +82,8 @@
 
   <div id="account-popup" class="popup">
     <span class="close-btn" onclick="togglePopup('account-popup')">✖</span>
-    <p><b>ID:</b> <span id="userId"></span></p>
-    <p><b>Username:</b> <span id="userName">Loading...</span></p>
+    <p><b>ID:</b> <span id="userId">12345</span></p>
+    <p><b>Username:</b> <span id="username">unknown</span></p>
     <p><b>Games played:</b> <span id="gamesPlayed">0</span></p>
     <p><b>Your rank:</b> <span id="userRank">???</span></p>
   </div>
@@ -115,55 +105,60 @@
   </div>
 
   <script>
-    // User ID and name
-    const userId = Math.floor(10000 + Math.random() * 90000);
-    document.getElementById("userId").textContent = userId;
-    document.getElementById("userName").textContent = "TelegramNameHere";
-
-    // Snake Game logic
     const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
     const box = 20;
     const rows = canvas.height / box;
     const cols = canvas.width / box;
-
-    let snake = [{ x: 10, y: 10 }];
-    let food = { x: 15, y: 15 };
+    let snake = [{ x: 9, y: 9 }];
+    let food = { x: 5, y: 5 };
     let direction = null;
     let score = 0;
-    let gameLoop;
+    let interval;
+    let playing = false;
+
+    const userId = Math.floor(10000 + Math.random() * 90000);
+    document.getElementById("userId").textContent = userId;
+    document.getElementById("username").textContent = "TelegramUser"; // заглушка
+
+    function startGame() {
+      playing = true;
+      direction = null;
+      score = 0;
+      snake = [{ x: 9, y: 9 }];
+      food = {
+        x: Math.floor(Math.random() * cols),
+        y: Math.floor(Math.random() * rows)
+      };
+      clearInterval(interval);
+      interval = setInterval(update, 150);
+    }
+
+    function update() {
+      drawMatrix();
+      drawGame();
+    }
 
     function drawGame() {
-      ctx.fillStyle = "black";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+      // Draw food
       ctx.fillStyle = "white";
       ctx.fillRect(food.x * box, food.y * box, box, box);
 
-      ctx.fillStyle = "red";
-      snake.forEach(s => ctx.fillRect(s.x * box, s.y * box, box, box));
-    }
-
-    function moveSnake() {
+      // Move snake
       const head = { ...snake[0] };
-
-      if (direction === "left") head.x--;
-      if (direction === "right") head.x++;
       if (direction === "up") head.y--;
       if (direction === "down") head.y++;
+      if (direction === "left") head.x--;
+      if (direction === "right") head.x++;
 
-      if (
-        head.x < 0 || head.y < 0 ||
-        head.x >= cols || head.y >= rows ||
-        snake.some(s => s.x === head.x && s.y === head.y)
-      ) {
-        clearInterval(gameLoop);
-        alert("Game Over");
+      if (head.x < 0 || head.x >= cols || head.y < 0 || head.y >= rows || snake.some(s => s.x === head.x && s.y === head.y)) {
+        gameOver();
         return;
       }
 
       snake.unshift(head);
-
       if (head.x === food.x && head.y === food.y) {
         food = {
           x: Math.floor(Math.random() * cols),
@@ -174,19 +169,20 @@
         snake.pop();
       }
 
-      drawGame();
+      ctx.fillStyle = "red";
+      snake.forEach(s => ctx.fillRect(s.x * box, s.y * box, box, box));
     }
 
-    function startGame() {
-      snake = [{ x: 10, y: 10 }];
-      direction = null;
-      score = 0;
-      clearInterval(gameLoop);
-      gameLoop = setInterval(moveSnake, 150);
+    function gameOver() {
+      clearInterval(interval);
+      playing = false;
+      ctx.fillStyle = "crimson";
+      ctx.font = "30px monospace";
+      ctx.fillText("Game Over", 120, 200);
     }
 
     function setDirection(dir) {
-      direction = dir;
+      if (playing) direction = dir;
     }
 
     function togglePopup(id) {
@@ -194,37 +190,42 @@
       popup.style.display = popup.style.display === "flex" ? "none" : "flex";
     }
 
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowUp") direction = "up";
-      if (e.key === "ArrowDown") direction = "down";
-      if (e.key === "ArrowLeft") direction = "left";
-      if (e.key === "ArrowRight") direction = "right";
-    });
-
-    // Matrix effect
-    const matrixCanvas = document.getElementById("matrix");
-    const matrixCtx = matrixCanvas.getContext("2d");
+    // Matrix background animation
+    const matrixCanvas = document.createElement("canvas");
+    document.body.appendChild(matrixCanvas);
+    matrixCanvas.style.position = "fixed";
+    matrixCanvas.style.top = 0;
+    matrixCanvas.style.left = 0;
+    matrixCanvas.style.zIndex = -1;
     matrixCanvas.width = window.innerWidth;
     matrixCanvas.height = window.innerHeight;
-
-    const colsMatrix = Math.floor(matrixCanvas.width / 20);
-    const drops = Array(colsMatrix).fill(1);
+    const mctx = matrixCanvas.getContext("2d");
+    const matrixCols = matrixCanvas.width / 20;
+    const drops = Array(Math.floor(matrixCols)).fill(1);
 
     function drawMatrix() {
-      matrixCtx.fillStyle = "rgba(0, 0, 0, 0.05)";
-      matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
-      matrixCtx.fillStyle = "red";
-      matrixCtx.font = "20px monospace";
+      if (playing) return;
+      mctx.fillStyle = "rgba(0, 0, 0, 0.1)";
+      mctx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+      mctx.fillStyle = "crimson";
+      mctx.font = "15px monospace";
       for (let i = 0; i < drops.length; i++) {
         const text = Math.floor(Math.random() * 10);
-        matrixCtx.fillText(text, i * 20, drops[i] * 20);
-        drops[i]++;
+        mctx.fillText(text, i * 20, drops[i] * 20);
         if (drops[i] * 20 > matrixCanvas.height && Math.random() > 0.975) {
           drops[i] = 0;
         }
+        drops[i]++;
       }
     }
+
     setInterval(drawMatrix, 50);
+    document.addEventListener("keydown", e => {
+      if (e.key === "ArrowUp") setDirection("up");
+      if (e.key === "ArrowDown") setDirection("down");
+      if (e.key === "ArrowLeft") setDirection("left");
+      if (e.key === "ArrowRight") setDirection("right");
+    });
   </script>
 </body>
 </html>
