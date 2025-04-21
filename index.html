@@ -2,94 +2,205 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Snake Game</title>
   <style>
-    canvas {
+    body {
+      margin: 0;
       background: #111;
+      color: #fff;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    canvas {
+      background: #000;
       display: block;
-      margin: 0 auto;
-      border: 2px solid #444;
+      margin: 10px auto;
+      border: 2px solid #fff;
+    }
+    #menu {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+    }
+    .menu-button {
+      background: #333;
+      color: #fff;
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+    .menu-button:hover {
+      background: #555;
+    }
+    #gameOverText {
+      display: none;
+      font-size: 28px;
+      color: red;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
   <canvas id="game" width="400" height="400"></canvas>
+  <div id="gameOverText">Game Over</div>
+  <div id="menu">
+    <button class="menu-button" onclick="startGame()">/play</button>
+    <button class="menu-button">/account</button>
+    <button class="menu-button">/top players this week</button>
+  </div>
 
   <script>
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
+    const scale = 20;
+    const rows = canvas.height / scale;
+    const columns = canvas.width / scale;
 
-    const grid = 20;
-    const snake = [{ x: 160, y: 160 }];
-    let dx = grid;
-    let dy = 0;
-    let food = randomFood();
-    let grow = false;
+    let snake;
+    let food;
+    let running = false;
 
-    function randomFood() {
-      return {
-        x: Math.floor(Math.random() * (canvas.width / grid)) * grid,
-        y: Math.floor(Math.random() * (canvas.height / grid)) * grid
-      };
-    }
-
-    function gameLoop() {
-      requestAnimationFrame(gameLoop);
-
-      if (++count < 5) return;
-      count = 0;
-
-      const head = { x: snake[0].x + dx, y: snake[0].y + dy };
-
-      // Wall collision
-      if (head.x < 0 || head.y < 0 || head.x >= canvas.width || head.y >= canvas.height) {
-        return alert('Game Over!');
+    class Snake {
+      constructor() {
+        this.body = [
+          { x: 5 * scale, y: 5 * scale }
+        ];
+        this.xSpeed = scale;
+        this.ySpeed = 0;
+        this.growing = false;
       }
 
-      // Self collision
-      for (let i = 0; i < snake.length; i++) {
-        if (snake[i].x === head.x && snake[i].y === head.y) {
-          return alert('Game Over!');
+      draw() {
+        ctx.fillStyle = 'red';
+        for (let segment of this.body) {
+          ctx.fillRect(segment.x, segment.y, scale, scale);
         }
       }
 
-      snake.unshift(head);
-
-      if (head.x === food.x && head.y === food.y) {
-        food = randomFood();
-      } else {
-        snake.pop();
+      update() {
+        const head = { x: this.body[0].x + this.xSpeed, y: this.body[0].y + this.ySpeed };
+        this.body.unshift(head);
+        if (!this.growing) {
+          this.body.pop();
+        } else {
+          this.growing = false;
+        }
       }
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      changeDirection(direction) {
+        switch (direction) {
+          case 'Up':
+            if (this.ySpeed === 0) {
+              this.xSpeed = 0;
+              this.ySpeed = -scale;
+            }
+            break;
+          case 'Down':
+            if (this.ySpeed === 0) {
+              this.xSpeed = 0;
+              this.ySpeed = scale;
+            }
+            break;
+          case 'Left':
+            if (this.xSpeed === 0) {
+              this.xSpeed = -scale;
+              this.ySpeed = 0;
+            }
+            break;
+          case 'Right':
+            if (this.xSpeed === 0) {
+              this.xSpeed = scale;
+              this.ySpeed = 0;
+            }
+            break;
+        }
+      }
 
-      ctx.fillStyle = 'red';
-      ctx.fillRect(food.x, food.y, grid, grid);
+      eat(pos) {
+        if (this.body[0].x === pos.x && this.body[0].y === pos.y) {
+          this.growing = true;
+          return true;
+        }
+        return false;
+      }
 
-      ctx.fillStyle = 'lime';
-      for (let i = 0; i < snake.length; i++) {
-        ctx.fillRect(snake[i].x, snake[i].y, grid, grid);
+      checkCollision() {
+        const head = this.body[0];
+        if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height) return true;
+        for (let i = 1; i < this.body.length; i++) {
+          if (head.x === this.body[i].x && head.y === this.body[i].y) return true;
+        }
+        return false;
       }
     }
 
-    document.addEventListener('keydown', e => {
-      if (e.key === 'ArrowLeft' && dx === 0) {
-        dx = -grid;
-        dy = 0;
-      } else if (e.key === 'ArrowUp' && dy === 0) {
-        dy = -grid;
-        dx = 0;
-      } else if (e.key === 'ArrowRight' && dx === 0) {
-        dx = grid;
-        dy = 0;
-      } else if (e.key === 'ArrowDown' && dy === 0) {
-        dy = grid;
-        dx = 0;
+    class Food {
+      constructor() {
+        this.pickLocation();
       }
+
+      pickLocation() {
+        this.x = Math.floor(Math.random() * columns) * scale;
+        this.y = Math.floor(Math.random() * rows) * scale;
+      }
+
+      draw() {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(this.x, this.y, scale, scale);
+      }
+    }
+
+    function startGame() {
+      document.getElementById('menu').style.display = 'none';
+      document.getElementById('gameOverText').style.display = 'none';
+      snake = new Snake();
+      food = new Food();
+      running = true;
+      loop();
+    }
+
+    function gameOver() {
+      running = false;
+      document.getElementById('gameOverText').style.display = 'block';
+      document.getElementById('menu').style.display = 'flex';
+    }
+
+    function loop() {
+      if (!running) return;
+      setTimeout(() => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        food.draw();
+        snake.update();
+        snake.draw();
+
+        if (snake.eat(food)) {
+          food.pickLocation();
+        }
+
+        if (snake.checkCollision()) {
+          gameOver();
+        } else {
+          requestAnimationFrame(loop);
+        }
+      }, 100);
+    }
+
+    window.addEventListener('keydown', e => {
+      const direction = e.key.replace('Arrow', '');
+      snake.changeDirection(direction);
     });
 
-    let count = 0;
-    requestAnimationFrame(gameLoop);
+    // Показываем меню при первом запуске
+    document.getElementById('menu').style.display = 'flex';
   </script>
 </body>
 </html>
