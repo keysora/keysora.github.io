@@ -208,138 +208,131 @@
   const matrixColumns = Math.floor(matrixCanvas.width / 10);
   const drops = Array(matrixColumns).fill(1);
 
+  // Backend API URL (replace with your Render.com URL)
+  const API_URL = 'https://your-render-app.onrender.com'; // ЗАМЕНИТЕ НА ВАШ URL
+
   // User data
   const userId = generateUserId();
   document.getElementById('userId').textContent = userId;
-  document.getElementById('gamesPlayed').textContent = gamesPlayed;
-  document.getElementById('userBestScore').textContent = bestScore;
   
   // Generate random 7-digit user ID
   function generateUserId() {
     return Math.floor(1000000 + Math.random() * 9000000);
   }
 
-  // Simulate Telegram user data (in a real app this would come from Telegram WebApp)
+  // Get Telegram user data
   function getTelegramUserData() {
-    // This is a placeholder - in a real Telegram WebApp, you would use:
-    // const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+    if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
+      const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+      return {
+        id: tgUser.id,
+        username: tgUser.username,
+        first_name: tgUser.first_name,
+        last_name: tgUser.last_name || ''
+      };
+    }
     return {
-      id: window.Telegram?.WebApp?.initDataUnsafe?.user?.id || userId,
-      username: window.Telegram?.WebApp?.initDataUnsafe?.user?.username || 'TelegramUser',
-      first_name: window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name || 'John',
-      last_name: window.Telegram?.WebApp?.initDataUnsafe?.user?.last_name || 'Doe'
+      id: userId,
+      username: 'Guest',
+      first_name: 'Guest',
+      last_name: ''
     };
   }
 
-  // Update user info from Telegram
-  function updateUserInfo() {
+  // Save score to backend
+  async function saveUserData(score) {
     const userData = getTelegramUserData();
-    document.getElementById('username').textContent = userData.username || 'TelegramUser';
-    document.getElementById('userFullname').textContent = `${userData.first_name} ${userData.last_name}`.trim();
     
-    // In a real app, you would fetch this from your database
-    // For now, we'll use localStorage
-    const savedData = JSON.parse(localStorage.getItem(`snake_user_${userData.id}`)) || {};
-    gamesPlayed = savedData.gamesPlayed || 0;
-    bestScore = savedData.bestScore || 0;
-    
-    document.getElementById('gamesPlayed').textContent = gamesPlayed;
-    document.getElementById('userBestScore').textContent = bestScore;
-  }
-
-  // Save user data to "database" (localStorage for demo)
-  function saveUserData(score) {
-    const userData = getTelegramUserData();
-    const savedData = JSON.parse(localStorage.getItem(`snake_user_${userData.id}`)) || {};
-    
-    gamesPlayed += 1;
-    if (score > bestScore) {
-      bestScore = score;
-    }
-    
-    const newData = {
-      id: userData.id,
-      username: userData.username,
-      first_name: userData.first_name,
-      last_name: userData.last_name,
-      gamesPlayed: gamesPlayed,
-      bestScore: bestScore,
-      lastPlayed: new Date().toISOString()
-    };
-    
-    localStorage.setItem(`snake_user_${userData.id}`, JSON.stringify(newData));
-    
-    // Also update the weekly leaderboard
-    updateWeeklyLeaderboard(userData.id, userData.username, score);
-  }
-
-  // Weekly leaderboard in localStorage
-  function updateWeeklyLeaderboard(userId, username, score) {
-    const now = new Date();
-    const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
-    const weekKey = `snake_leaderboard_${weekStart.toISOString().slice(0, 10)}`;
-    
-    let leaderboard = JSON.parse(localStorage.getItem(weekKey)) || [];
-    
-    // Check if user already has a score this week
-    const userIndex = leaderboard.findIndex(entry => entry.userId === userId);
-    
-    if (userIndex !== -1) {
-      // Update if new score is higher
-      if (score > leaderboard[userIndex].score) {
-        leaderboard[userIndex].score = score;
-      }
-    } else {
-      // Add new entry
-      leaderboard.push({
-        userId,
-        username,
-        score
+    try {
+      const response = await fetch(`${API_URL}/api/save`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          telegramId: userData.id,
+          username: userData.username,
+          firstName: userData.first_name,
+          lastName: userData.last_name,
+          score: score
+        })
       });
+
+      const data = await response.json();
+      if (data.success) {
+        updateUserInfo();
+      }
+    } catch (error) {
+      console.error('Save error:', error);
+      // Fallback to localStorage
+      const savedData = JSON.parse(localStorage.getItem(`snake_user_${userData.id}`)) || {};
+      gamesPlayed = (savedData.gamesPlayed || 0) + 1;
+      bestScore = Math.max(score, savedData.bestScore || 0);
+      localStorage.setItem(`snake_user_${userData.id}`, JSON.stringify({
+        gamesPlayed,
+        bestScore
+      }));
     }
-    
-    // Sort by score descending
-    leaderboard.sort((a, b) => b.score - a.score);
-    
-    // Keep only top 100
-    if (leaderboard.length > 100) {
-      leaderboard = leaderboard.slice(0, 100);
-    }
-    
-    localStorage.setItem(weekKey, JSON.stringify(leaderboard));
   }
 
-  // Get current week's leaderboard
-  function getWeeklyLeaderboard() {
-    const now = new Date();
-    const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
-    const weekKey = `snake_leaderboard_${weekStart.toISOString().slice(0, 10)}`;
-    
-    return JSON.parse(localStorage.getItem(weekKey)) || [];
-  }
-
-  // Display leaderboard
-  function displayLeaderboard() {
-    const leaderboard = getWeeklyLeaderboard();
-    const leaderboardElement = document.getElementById('leaderboard');
-    leaderboardElement.innerHTML = '';
-    
+  // Update user info from backend
+  async function updateUserInfo() {
     const userData = getTelegramUserData();
+    document.getElementById('username').textContent = userData.username || 'Guest';
+    document.getElementById('userFullname').textContent = `${userData.first_name} ${userData.last_name}`.trim() || 'Guest';
     
-    if (leaderboard.length === 0) {
-      leaderboardElement.innerHTML = '<p>No players yet this week!</p>';
-      return;
+    try {
+      const response = await fetch(`${API_URL}/api/user?id=${userData.id}`);
+      const data = await response.json();
+      
+      if (data) {
+        gamesPlayed = data.gamesPlayed || 0;
+        bestScore = data.bestScore || 0;
+        document.getElementById('gamesPlayed').textContent = gamesPlayed;
+        document.getElementById('userBestScore').textContent = bestScore;
+      }
+    } catch (error) {
+      console.error('Load user error:', error);
+      // Fallback to localStorage
+      const savedData = JSON.parse(localStorage.getItem(`snake_user_${userData.id}`)) || {};
+      gamesPlayed = savedData.gamesPlayed || 0;
+      bestScore = savedData.bestScore || 0;
+      document.getElementById('gamesPlayed').textContent = gamesPlayed;
+      document.getElementById('userBestScore').textContent = bestScore;
     }
+  }
+
+  // Display leaderboard from backend
+  async function displayLeaderboard() {
+    const leaderboardElement = document.getElementById('leaderboard');
+    leaderboardElement.innerHTML = '<p>Loading leaderboard...</p>';
     
-    leaderboard.forEach((player, index) => {
-      const entry = document.createElement('div');
-      entry.className = `leaderboard-entry ${player.userId === userData.id ? 'current-user' : ''}`;
-      entry.innerHTML = `
-        <span>${index + 1}. ${player.username || 'Anonymous'}</span>
-        <span>${player.score}</span>
-      `;
-      leaderboardElement.appendChild(entry);
-    });
+    try {
+      const response = await fetch(`${API_URL}/api/leaderboard`);
+      const leaderboard = await response.json();
+      
+      leaderboardElement.innerHTML = '';
+      
+      if (leaderboard.length === 0) {
+        leaderboardElement.innerHTML = '<p>No players yet this week!</p>';
+        return;
+      }
+      
+      const userData = getTelegramUserData();
+      
+      leaderboard.forEach((player, index) => {
+        const entry = document.createElement('div');
+        entry.className = `leaderboard-entry ${player.userId === userData.id ? 'current-user' : ''}`;
+        entry.innerHTML = `
+          <span>${index + 1}. ${player.username || 'Anonymous'}</span>
+          <span>${player.score}</span>
+        `;
+        leaderboardElement.appendChild(entry);
+      });
+    } catch (error) {
+      console.error('Load leaderboard error:', error);
+      leaderboardElement.innerHTML = '<p>Failed to load leaderboard</p>';
+    }
   }
 
   function drawMatrix() {
@@ -494,11 +487,16 @@
       // Expand the app to full view
       window.Telegram.WebApp.expand();
       
-      // Set up theme colors
-      const theme = window.Telegram.WebApp.colorScheme;
-      document.documentElement.style.setProperty('--tg-theme', theme === 'dark' ? '#000' : '#fff');
+      // Set up MainButton
+      window.Telegram.WebApp.MainButton
+        .setText('Play Again')
+        .onClick(() => {
+          startGame();
+          window.Telegram.WebApp.MainButton.hide();
+        })
+        .show();
       
-      // Update user info with real Telegram data
+      // Update user info
       updateUserInfo();
     }
   });
