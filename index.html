@@ -56,35 +56,10 @@
       z-index: 10;
     }
 
-    .joystick-container {
-      position: fixed;
-      bottom: 30px;
-      left: 0;
-      right: 0;
-      display: flex;
-      justify-content: center;
-      z-index: 100;
-      touch-action: none;
-    }
 
-    .joystick {
-      width: 120px;
-      height: 120px;
-      background-color: rgba(220, 20, 60, 0.3);
-      border-radius: 50%;
-      position: relative;
-    }
+  
 
-    .joystick-knob {
-      width: 50px;
-      height: 50px;
-      background-color: rgba(220, 20, 60, 0.8);
-      border-radius: 50%;
-      position: absolute;
-      top: 35px;
-      left: 35px;
-      transition: transform 0.1s;
-    }
+
 
     .sound-control {
       position: fixed;
@@ -183,11 +158,7 @@
     <div id="leaderboard"></div>
   </div>
 
-  <div class="joystick-container">
-    <div class="joystick" id="joystick">
-      <div class="joystick-knob" id="joystickKnob"></div>
-    </div>
-  </div>
+  
 
   <script>
     // Game variables
@@ -488,93 +459,11 @@
     });
 
     // Joystick controls
-    const joystick = document.getElementById('joystick');
-    const joystickKnob = document.getElementById('joystickKnob');
-    let activeTouchId = null;
-    let joystickCenter = { x: 0, y: 0 };
+  
 
-    function initJoystick() {
-      const rect = joystick.getBoundingClientRect();
-      joystickCenter = {
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2
-      };
-    }
 
-    window.addEventListener('resize', initJoystick);
-    initJoystick();
+ 
 
-    joystick.addEventListener('touchstart', (e) => {
-      if (activeTouchId !== null) return;
-      activeTouchId = e.changedTouches[0].identifier;
-      handleJoystickMove(e.changedTouches[0]);
-      e.preventDefault();
-    });
-
-    document.addEventListener('touchmove', (e) => {
-      if (activeTouchId === null) return;
-      
-      const touch = Array.from(e.changedTouches).find(t => t.identifier === activeTouchId);
-      if (touch) {
-        handleJoystickMove(touch);
-        e.preventDefault();
-      }
-    });
-
-    document.addEventListener('touchend', (e) => {
-      if (activeTouchId === null) return;
-      
-      const touch = Array.from(e.changedTouches).find(t => t.identifier === activeTouchId);
-      if (touch) {
-        resetJoystick();
-        e.preventDefault();
-      }
-    });
-
-    function handleJoystickMove(touch) {
-      const dx = touch.clientX - joystickCenter.x;
-      const dy = touch.clientY - joystickCenter.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      const maxDistance = 60;
-      const angle = Math.atan2(dy, dx);
-      const ratio = Math.min(1, distance / maxDistance);
-
-      // Update joystick knob position
-      joystickKnob.style.transform = `translate(${dx * ratio}px, ${dy * ratio}px)`;
-
-      // Determine direction
-      if (ratio > 0.3) {
-        const sector = Math.floor((angle + Math.PI) / (Math.PI / 2)) % 4;
-        
-        let newDirection;
-        switch (sector) {
-          case 0: newDirection = 'left'; break;
-          case 1: newDirection = 'up'; break;
-          case 2: newDirection = 'right'; break;
-          case 3: newDirection = 'down'; break;
-        }
-
-        if (newDirection && direction !== oppositeDirection(newDirection)) {
-          playSound('move');
-          direction = newDirection;
-        }
-      }
-    }
-
-    function oppositeDirection(dir) {
-      switch (dir) {
-        case 'left': return 'right';
-        case 'right': return 'left';
-        case 'up': return 'down';
-        case 'down': return 'up';
-        default: return '';
-      }
-    }
-
-    function resetJoystick() {
-      joystickKnob.style.transform = 'translate(0, 0)';
-      activeTouchId = null;
-    }
 
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
