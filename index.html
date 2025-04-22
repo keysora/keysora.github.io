@@ -222,23 +222,20 @@
     };
   }
 
-  async function saveUserData(score) {
-    const userData = getTelegramUserData();
-    
-    try {
-      const response = await fetch(`${API_URL}/api/save`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          telegramId: userData.id,
-          username: userData.username,
-          firstName: userData.first_name,
-          lastName: userData.last_name,
-          score: score
-        })
-      });
+async function saveUserData(score) {
+  const userData = getTelegramUserData();
+  
+  try {
+    const response = await fetch(`${API_URL}/api/save-score`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        telegramId: userData.id,
+        score: score
+      })
+    });
 
       const data = await response.json();
       if (data.success) {
@@ -256,30 +253,23 @@
     }
   }
 
-  async function updateUserInfo() {
-    const userData = getTelegramUserData();
-    document.getElementById('username').textContent = userData.username || 'Guest';
-    document.getElementById('userFullname').textContent = `${userData.first_name} ${userData.last_name}`.trim() || 'Guest';
+ async function updateUserInfo() {
+  const userData = getTelegramUserData();
+  document.getElementById('username').textContent = userData.username || 'Guest';
+  document.getElementById('userFullname').textContent = `${userData.first_name} ${userData.last_name}`.trim() || 'Guest';
+  
+  try {
+    const response = await fetch(`${API_URL}/api/user?id=${userData.id}`);
+    const data = await response.json();
     
-    try {
-      const response = await fetch(`${API_URL}/api/user?id=${userData.id}`);
-      const data = await response.json();
-      
-      if (data) {
-        gamesPlayed = data.gamesPlayed || 0;
-        bestScore = data.bestScore || 0;
-        document.getElementById('gamesPlayed').textContent = gamesPlayed;
-        document.getElementById('userBestScore').textContent = bestScore;
-      }
-    } catch (error) {
-      console.error('Load user error:', error);
-      const savedData = JSON.parse(localStorage.getItem(`snake_user_${userData.id}`)) || {};
-      gamesPlayed = savedData.gamesPlayed || 0;
-      bestScore = savedData.bestScore || 0;
-      document.getElementById('gamesPlayed').textContent = gamesPlayed;
-      document.getElementById('userBestScore').textContent = bestScore;
+    if (data) {
+      document.getElementById('gamesPlayed').textContent = data.gamesPlayed || 0;
+      document.getElementById('userBestScore').textContent = data.bestScore || 0;
     }
+  } catch (error) {
+    console.error('Load user error:', error);
   }
+}
 
   async function displayLeaderboard() {
     const leaderboardElement = document.getElementById('leaderboard');
