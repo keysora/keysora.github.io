@@ -272,9 +272,28 @@
 
     function draw() {
       // Draw background
-      ctx.fillStyle = '#000';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const pulse = Math.sin(Date.now() / 500) * 0.1 + 0.9;
+  ctx.fillStyle = `rgba(0, 0, 0, ${pulse})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+        drawGrid(box, `rgba(50, 200, 50, ${0.3 + snake.length / 100})`);
+      }
+    function drawGrid(step, color) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 0.3;
+  for (let i = 0; i < canvas.width; i += step) {
+    ctx.beginPath();
+    ctx.moveTo(i, 0);
+    ctx.lineTo(i, canvas.height);
+    ctx.stroke();
+  }
+  for (let j = 0; j < canvas.height; j += step) {
+    ctx.beginPath();
+    ctx.moveTo(0, j);
+    ctx.lineTo(canvas.width, j);
+    ctx.stroke();
+  }
+}
       // Draw snake
       for (let i = 0; i < snake.length; i++) {
         ctx.fillStyle = i === 0 ? 'crimson' : 'darkred';
