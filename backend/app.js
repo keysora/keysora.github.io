@@ -10,31 +10,30 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../public'))); // Serve static files
+app.use(express.static(path.join(__dirname, '../public')));
 
 // MongoDB Models
-// Обновите схемы:
-const WeeklyLeaderboard = mongoose.model('WeeklyLeaderboard', new mongoose.Schema({
+const weeklyLeaderboardSchema = new mongoose.Schema({
   telegramId: { type: Number, required: true, index: true },
   score: { type: Number, required: true, index: true },
   date: { type: Date, default: Date.now, index: true }
-}), 'weekly_leaderboard');
+}, { collection: 'weekly_leaderboard' });
 
-const UserProfile = mongoose.model('UserProfile', new mongoose.Schema({
+const userProfileSchema = new mongoose.Schema({
   telegramId: { type: Number, required: true, unique: true },
   username: { type: String },
   firstName: { type: String },
   lastName: { type: String },
   joinDate: { type: Date, default: Date.now }
-}), 'user_profiles');
+}, { collection: 'user_profiles' });
+
+const WeeklyLeaderboard = mongoose.model('WeeklyLeaderboard', weeklyLeaderboardSchema);
+const UserProfile = mongoose.model('UserProfile', userProfileSchema);
 
 // Telegram Bot
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
-
-// Web App URL (replace with your actual URL)
 const WEB_APP_URL = process.env.WEB_APP_URL || 'https://keysora.github.io';
 
-    
 // Bot Commands
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
@@ -52,7 +51,7 @@ bot.onText(/\/start/, (msg) => {
   });
 });
 
-// Handle game data submissions from Web App
+// API Endpoints
 app.post('/api/save', async (req, res) => {
   try {
     const { telegramId, username, firstName, lastName, score } = req.body;
@@ -77,16 +76,14 @@ app.post('/api/save', async (req, res) => {
     
   } catch (error) {
     console.error('Save error:', error);
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// Game endpoint (serves your game HTML)
 app.get('/game', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/game.html'));
 });
 
-// Leaderboard API
 app.get('/api/leaderboard', async (req, res) => {
   try {
     const leaders = await WeeklyLeaderboard.aggregate([
@@ -111,14 +108,13 @@ app.get('/api/leaderboard', async (req, res) => {
         }
       }
     ]);
-  res.json({ success: true, leaders });
+    res.json({ success: true, leaders });
   } catch (error) {
     console.error('Leaderboard error:', error);
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// Health check
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK',
@@ -127,26 +123,46 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// MongoDB connection
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => {
-  console.log('✅ MongoDB connected successfully');
-  
-  // Create indexes
- await WeeklyLeaderboard.collection.createIndex({ score: -1 });
-await WeeklyLeaderboard.collection.createIndex({ date: 1 });
-await UserProfile.collection.createIndex({ telegramId: 1 }, { unique: true });
+// MongoDB connection and server start
+async function startServer() {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      autoIndex: true // Автоматическое создание индексов
+    });
+    
+    console.log('✅ MongoDB connected successfully');
+    
+    // Явное создание индексов (опционально)
+    try {
+      await WeeklyLeaderboard.init();
+      await UserProfile.init();
+      console.log('✅ Indexes created successfully');
+    } catch (indexError) {
+      console.warn('⚠️ Index creation warning:', indexError.message);
+    }
 
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`🕹️ Game WebApp URL: ${WEB_APP_URL}`);
-  });
-})
-.catch(err => {
-  console.error('❌ MongoDB connection error:', err);
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`🕹️ Game WebApp URL: ${WEB_APP_URL}`);
+    });
+  } catch (err) {
+    console.error('❌ Server startup error:', err);
+    process.exit(1);
+  }
+}
+
+// Error handlers
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled Rejection:', err);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
   process.exit(1);
 });
+
+// Start the server
+startServer();
