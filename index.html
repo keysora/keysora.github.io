@@ -56,8 +56,44 @@
       z-index: 10;
     }
 
+/* Add these new styles */
+.swipe-trail {
+  position: absolute;
+  height: 8px;
+  background: rgba(220, 20, 60, 0.7);
+  border-radius: 4px;
+  transform-origin: left center;
+  z-index: 10;
+  pointer-events: none;
+}
 
-  
+.swipe-arrow {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  z-index: 11;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.control-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  pointer-events: none;
+}
+
+.control-zone {
+  pointer-events: auto;
+  opacity: 0;
+}  
 
 
 
@@ -133,7 +169,20 @@
   <h1 style="text-align: center; z-index:3; position:relative; color: crimson;">FoX GeM</h1>
   <div id="game-over-text">GAME OVER<br><span style="font-size: 0.6em;">Score: <span id="final-score">0</span></span></div>
   <canvas id="game" width="400" height="400"></canvas>
+<!-- Touch control overlay -->
+<div id="swipeFeedback" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:10;pointer-events:none;"></div>
 
+<div class="control-overlay">
+  <div class="control-zone" data-direction="up"></div>
+  <div class="control-zone" data-direction="up"></div>
+  <div class="control-zone" data-direction="up"></div>
+  <div class="control-zone" data-direction="left"></div>
+  <div class="control-zone"></div>
+  <div class="control-zone" data-direction="right"></div>
+  <div class="control-zone" data-direction="down"></div>
+  <div class="control-zone" data-direction="down"></div>
+  <div class="control-zone" data-direction="down"></div>
+</div>
   <div class="menu">
     <button class="button" onclick="startGame()">Play</button>
     <button class="button" onclick="showAccountPopup()">Account</button>
