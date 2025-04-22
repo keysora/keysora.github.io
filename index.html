@@ -113,7 +113,6 @@
     .leaderboard-entry:nth-child(3) { color: #cd7f32; font-weight: bold; }
     .current-user { color: crimson !important; }
 
-    /* Зоны для тапов */
     .control-overlay {
       position: absolute;
       top: 0;
@@ -148,7 +147,6 @@
   <div id="game-over-text">GAME OVER<br><span style="font-size: 0.6em;">Score: <span id="final-score">0</span></span></div>
   <canvas id="game" width="400" height="400"></canvas>
 
-  <!-- Зоны для управления тапами -->
   <div class="control-overlay">
     <div class="control-zone" data-direction="up"></div>
     <div class="control-zone" data-direction="up"></div>
@@ -167,10 +165,26 @@
     <button class="button" onclick="showLeaderboardPopup()">Leaderboard</button>
   </div>
 
-  <!-- [Остальные попапы оставьте как есть] -->
+  <!-- Account Popup -->
+  <div class="popup" id="accountPopup">
+    <span class="close-btn" onclick="hideAccountPopup()">×</span>
+    <h2 style="color: crimson; text-align: center;">Account</h2>
+    <div id="accountInfo">
+      <p>Loading user data...</p>
+    </div>
+  </div>
+
+  <!-- Leaderboard Popup -->
+  <div class="popup" id="leaderboardPopup">
+    <span class="close-btn" onclick="hideLeaderboardPopup()">×</span>
+    <h2 style="color: crimson; text-align: center;">Leaderboard</h2>
+    <div id="leaderboardContent">
+      <p>Loading leaderboard...</p>
+    </div>
+  </div>
 
   <script>
-    // Игровые переменные
+    // Game variables
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
     const box = 20;
@@ -182,7 +196,7 @@
     const gameOverText = document.getElementById('game-over-text');
     const finalScoreElement = document.getElementById('final-score');
 
-    // Звуки
+    // Sound effects
     const soundEffects = {
       eat: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3'),
       gameOver: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-retro-arcade-lose-2027.mp3'),
@@ -202,7 +216,7 @@
       }
     }
 
-    // Инициализация игры
+    // Game initialization
     function initGame() {
       snake = [{x: 9 * box, y: 10 * box}];
       direction = 'right';
@@ -219,7 +233,7 @@
         y: Math.floor(Math.random() * 20) * box,
       };
       
-      // Проверка, чтобы еда не появилась на змейке
+      // Check if food appears on snake
       for (let i = 0; i < snake.length; i++) {
         if (food.x === snake[i].x && food.y === snake[i].y) {
           generateFood();
@@ -229,11 +243,11 @@
     }
 
     function draw() {
-      // Фон с сеткой
+      // Background with grid
       ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      // Рисуем сетку (матрицу)
+      // Draw grid
       ctx.strokeStyle = 'rgba(50, 200, 50, 0.3)';
       ctx.lineWidth = 0.5;
       for (let i = 0; i < canvas.width; i += box) {
@@ -249,12 +263,12 @@
         ctx.stroke();
       }
 
-      // Змейка
+      // Draw snake
       for (let i = 0; i < snake.length; i++) {
         ctx.fillStyle = i === 0 ? 'crimson' : 'darkred';
         ctx.fillRect(snake[i].x, snake[i].y, box, box);
         
-        // Глаза
+        // Draw eyes
         if (i === 0) {
           ctx.fillStyle = 'white';
           const eyeSize = box / 5;
@@ -276,13 +290,13 @@
         }
       }
 
-      // Еда (белая)
+      // Draw food
       ctx.fillStyle = 'white';
       ctx.beginPath();
       ctx.arc(food.x + box/2, food.y + box/2, box/2 - 2, 0, Math.PI * 2);
       ctx.fill();
 
-      // Движение
+      // Movement
       let headX = snake[0].x;
       let headY = snake[0].y;
 
@@ -291,7 +305,7 @@
       if (direction === 'up') headY -= box;
       if (direction === 'down') headY += box;
 
-      // Столкновения
+      // Collision detection
       if (
         headX < 0 || headX >= canvas.width ||
         headY < 0 || headY >= canvas.height ||
@@ -301,10 +315,10 @@
         return;
       }
 
-      // Съела еду
+      // Eat food
       if (headX === food.x && headY === food.y) {
         playSound('eat');
-        score += 3; // +3 очка
+        score += 3;
         generateFood();
       } else {
         snake.pop();
@@ -322,12 +336,12 @@
       return false;
     }
 
-    function gameOver() {
+    async function gameOver() {
       clearInterval(gameLoop);
       playSound('gameOver');
       finalScoreElement.textContent = score;
       gameOverText.style.display = 'block';
-      saveScore();
+      await saveScore();
     }
 
     function startGame() {
@@ -335,7 +349,112 @@
       initGame();
     }
 
-    // Управление тапами
+    // API Integration
+    async function saveScore() {
+      if (!window.Telegram?.WebApp?.initDataUnsafe?.user) {
+        console.log("Not in Telegram WebApp, score not saved");
+        return;
+      }
+
+      const user = window.Telegram.WebApp.initDataUnsafe.user;
+      try {
+        const response = await fetch('/api/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            telegramId: user.id,
+            username: user.username,
+            firstName: user.first_name,
+            lastName: user.last_name,
+            score: score
+          })
+        });
+        const data = await response.json();
+        console.log("Score saved:", data);
+      } catch (error) {
+        console.error("Save error:", error);
+      }
+    }
+
+    async function updateUserInfo() {
+      if (!window.Telegram?.WebApp?.initDataUnsafe?.user) {
+        document.getElementById('accountInfo').innerHTML = `
+          <p>Not logged in via Telegram</p>
+          <p>Play as guest</p>
+        `;
+        return;
+      }
+      
+      const userId = window.Telegram.WebApp.initDataUnsafe.user.id;
+      try {
+        const response = await fetch(`/api/user/${userId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+          document.getElementById('accountInfo').innerHTML = `
+            <p><strong>Username:</strong> ${data.user.username}</p>
+            <p><strong>Name:</strong> ${data.user.firstName} ${data.user.lastName}</p>
+            <p><strong>Member since:</strong> ${new Date(data.user.joinDate).toLocaleDateString()}</p>
+            <hr>
+            <p><strong>Best Score:</strong> ${data.stats.bestScore}</p>
+            <p><strong>Games Played:</strong> ${data.stats.gamesPlayed}</p>
+          `;
+        } else {
+          document.getElementById('accountInfo').innerHTML = `<p>Error loading user data</p>`;
+        }
+      } catch (error) {
+        console.error("User info error:", error);
+        document.getElementById('accountInfo').innerHTML = `<p>Error loading user data</p>`;
+      }
+    }
+
+    async function loadLeaderboard() {
+      try {
+        const response = await fetch('/api/leaderboard');
+        const data = await response.json();
+        
+        if (data.success) {
+          let html = '<div class="leaderboard-list">';
+          data.leaders.forEach((leader, index) => {
+            const isCurrent = window.Telegram?.WebApp?.initDataUnsafe?.user?.id === leader.user.telegramId;
+            html += `
+              <div class="leaderboard-entry ${isCurrent ? 'current-user' : ''}">
+                <span>${index + 1}. ${leader.user.firstName || leader.user.username || 'Anonymous'}</span>
+                <span>${leader.score}</span>
+              </div>
+            `;
+          });
+          html += '</div>';
+          document.getElementById('leaderboardContent').innerHTML = html;
+        } else {
+          document.getElementById('leaderboardContent').innerHTML = '<p>Error loading leaderboard</p>';
+        }
+      } catch (error) {
+        console.error("Leaderboard error:", error);
+        document.getElementById('leaderboardContent').innerHTML = '<p>Error loading leaderboard</p>';
+      }
+    }
+
+    // Popup controls
+    function showAccountPopup() {
+      updateUserInfo();
+      document.getElementById('accountPopup').style.display = 'flex';
+    }
+
+    function hideAccountPopup() {
+      document.getElementById('accountPopup').style.display = 'none';
+    }
+
+    function showLeaderboardPopup() {
+      loadLeaderboard();
+      document.getElementById('leaderboardPopup').style.display = 'flex';
+    }
+
+    function hideLeaderboardPopup() {
+      document.getElementById('leaderboardPopup').style.display = 'none';
+    }
+
+    // Touch controls
     document.querySelectorAll('.control-zone').forEach(zone => {
       zone.addEventListener('touchstart', (e) => {
         e.preventDefault();
@@ -357,7 +476,7 @@
       }
     }
 
-    // Клавиатура
+    // Keyboard controls
     document.addEventListener('keydown', e => {
       if (['ArrowLeft', 'ArrowUp', 'ArrowRight', 'ArrowDown', 'a', 'w', 'd', 's'].includes(e.key)) {
         e.preventDefault();
@@ -378,14 +497,25 @@
       }
     });
 
-    // [Остальные функции (Telegram, попапы) оставьте как есть]
-
-    // Запуск
+    // Initialize
     document.addEventListener('DOMContentLoaded', () => {
+      if (!canvas.getContext) {
+        alert("Your browser doesn't support Canvas. Please update your browser.");
+        return;
+      }
+
       if (window.Telegram?.WebApp) {
         window.Telegram.WebApp.expand();
-        updateUserInfo();
+        window.Telegram.WebApp.enableClosingConfirmation();
+        window.Telegram.WebApp.BackButton.show();
+        
+        window.Telegram.WebApp.BackButton.onClick(() => {
+          window.Telegram.WebApp.close();
+        });
       }
+
+      // Start game automatically or wait for button click
+      // startGame(); // Uncomment for auto-start
     });
   </script>
 </body>
