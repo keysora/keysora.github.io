@@ -2,63 +2,150 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const TelegramBot = require('node-telegram-bot-api'); // Add Telegram
+const TelegramBot = require('node-telegram-bot-api');
+const path = require('path');
 
 const app = express();
 
-// 1. MongoDB Connection (Improved)
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('✅ MongoDB connected successfully'))
-.catch(err => console.error('❌ MongoDB connection error:', err));
-
-// 2. Middleware
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5500' // Adjust to your frontend
-}));
+// Middleware
+app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, '../public'))); // Serve static files
 
-// 3. Telegram Bot Setup
-const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
-bot.on('message', (msg) => {
-  const chatId = msg.chat.id;
-  bot.sendMessage(chatId, `Hello from FoxGem! Your ID: ${chatId}`);
-});
-
-// 4. Database Model (Add this before routes)
-const GameResult = mongoose.model('GameResult', new mongoose.Schema({
-  telegramId: { type: Number, required: true },
+// MongoDB Models
+const WeeklyLeaderboard = mongoose.model('WeeklyLeaderboard', new mongoose.Schema({
+  telegramId: { type: Number, required: true, index: true },
   score: { type: Number, required: true },
   date: { type: Date, default: Date.now }
-}));
+}), 'weekly_leaderboard');
 
-// 5. Enhanced Game Saving Route
+const UserProfile = mongoose.model('UserProfile', new mongoose.Schema({
+  telegramId: { type: Number, required: true, unique: true },
+  username: { type: String },
+  firstName: { type: String },
+  lastName: { type: String },
+  joinDate: { type: Date, default: Date.now }
+}), 'user_profiles');
+
+// Telegram Bot
+const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
+
+// Web App URL (replace with your actual URL)
+const WEB_APP_URL = process.env.WEB_APP_URL || 'https://keysora.github.io';
+
+    
+// Bot Commands
+bot.onText(/\/start/, (msg) => {
+  const chatId = msg.chat.id;
+  const userName = msg.from.username || msg.from.first_name;
+  
+  bot.sendMessage(chatId, `Привет, ${userName}! Хочешь сыграть?`, {
+    reply_markup: {
+      inline_keyboard: [
+        [{
+          text: '🎮 Играть сейчас',
+          web_app: { url: `${WEB_APP_URL}?tg=${chatId}` }
+        }]
+      ]
+    }
+  });
+});
+
+// Handle game data submissions from Web App
 app.post('/api/save', async (req, res) => {
   try {
-    const { telegramId, score } = req.body;
+    const { telegramId, username, firstName, lastName, score } = req.body;
     
-    // Save to MongoDB
-    const result = await GameResult.create({ telegramId, score });
+    const leaderboardEntry = await WeeklyLeaderboard.create({ telegramId, score });
     
-    // Notify user via Telegram
-    await bot.sendMessage(telegramId, `Your score ${score} was saved!`);
+    await UserProfile.updateOne(
+      { telegramId },
+      { 
+        $setOnInsert: { 
+          username, 
+          firstName, 
+          lastName,
+          joinDate: new Date() 
+        }
+      },
+      { upsert: true }
+    );
     
-    res.json({ success: true, data: result });
+    await bot.sendMessage(telegramId, `🎉 Ваш результат ${score} сохранен!`);
+    res.json({ success: true, entry: leaderboardEntry });
+    
   } catch (error) {
     console.error('Save error:', error);
     res.status(500).json({ success: false });
   }
 });
 
-// 6. Frontend Serving (Add if you want Express to serve HTML)
-const path = require('path');
-app.use(express.static(path.join(__dirname, '../frontend')));
+// Game endpoint (serves your game HTML)
+app.get('/game', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/game.html'));
+});
 
-// 7. Start Server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🔗 Frontend: ${process.env.FRONTEND_URL || 'http://localhost:' + PORT}`);
+// Leaderboard API
+app.get('/api/leaderboard', async (req, res) => {
+  try {
+    const leaders = await WeeklyLeaderboard.aggregate([
+      {
+        $lookup: {
+          from: "user_profiles",
+          localField: "telegramId",
+          foreignField: "telegramId",
+          as: "user"
+        }
+      },
+      { $unwind: "$user" },
+      { $sort: { score: -1 } },
+      { $limit: 10 },
+      {
+        $project: {
+          score: 1,
+          date: 1,
+          "user.username": 1,
+          "user.firstName": 1,
+          "user.lastName": 1
+        }
+      }
+    ]);
+  res.json({ success: true, leaders });
+  } catch (error) {
+    console.error('Leaderboard error:', error);
+    res.status(500).json({ success: false });
+  }
+});
+
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK',
+    dbState: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    uptime: process.uptime()
+  });
+});
+
+// MongoDB connection
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => {
+  console.log('✅ MongoDB connected successfully');
+  
+  // Create indexes
+  WeeklyLeaderboard.createIndex({ score: -1 });
+  WeeklyLeaderboard.createIndex({ date: 1 });
+  UserProfile.createIndex({ telegramId: 1 }, { unique: true });
+
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🕹️ Game WebApp URL: ${WEB_APP_URL}`);
+  });
+})
+.catch(err => {
+  console.error('❌ MongoDB connection error:', err);
+  process.exit(1);
 });
