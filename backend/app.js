@@ -13,10 +13,11 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public'))); // Serve static files
 
 // MongoDB Models
+// Обновите схемы:
 const WeeklyLeaderboard = mongoose.model('WeeklyLeaderboard', new mongoose.Schema({
   telegramId: { type: Number, required: true, index: true },
-  score: { type: Number, required: true },
-  date: { type: Date, default: Date.now }
+  score: { type: Number, required: true, index: true },
+  date: { type: Date, default: Date.now, index: true }
 }), 'weekly_leaderboard');
 
 const UserProfile = mongoose.model('UserProfile', new mongoose.Schema({
