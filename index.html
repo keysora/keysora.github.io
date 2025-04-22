@@ -508,7 +508,45 @@
     });
 
     // Joystick controls
+  // New swipe controls system
+let swipeStart = null;
+let swipeTrail = null;
+let swipeArrow = null;
+let velocity = 0;
+const maxVelocity = 15;
+
+function createSwipeElement() {
+  swipeTrail = document.createElement('div');
+  swipeTrail.className = 'swipe-trail';
+  swipeArrow = document.createElement('div');
+  swipeArrow.className = 'swipe-arrow';
+  document.getElementById('swipeFeedback').appendChild(swipeTrail);
+  document.getElementById('swipeFeedback').appendChild(swipeArrow);
+}
+
+function updateSwipeElement(x1, y1, x2, y2) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const length = Math.sqrt(dx*dx + dy*dy);
+  const angle = Math.atan2(dy, dx) * 180 / Math.PI;
   
+  swipeTrail.style.width = `${length}px`;
+  swipeTrail.style.left = `${x1}px`;
+  swipeTrail.style.top = `${y1 - 4}px`;
+  swipeTrail.style.transform = `rotate(${angle}deg)`;
+  
+  swipeArrow.style.left = `${x2}px`;
+  swipeArrow.style.top = `${y2}px`;
+  swipeArrow.style.borderWidth = `0 15px 25px 15px`;
+  swipeArrow.style.borderColor = `transparent transparent rgba(220, 20, 60, 0.9) transparent`;
+  swipeArrow.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+  swipeArrow.style.opacity = length > 50 ? '1' : '0';
+  
+  velocity = Math.min(maxVelocity, Math.floor(length / 10));
+}
+
+// ... [Rest of the swipe control code from previous message]
+// Add ALL remaining swipe control functions from the example
 
 
  
