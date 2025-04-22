@@ -135,9 +135,9 @@ mongoose.connect(process.env.MONGODB_URI, {
   console.log('✅ MongoDB connected successfully');
   
   // Create indexes
-  WeeklyLeaderboard.createIndex({ score: -1 });
-  WeeklyLeaderboard.createIndex({ date: 1 });
-  UserProfile.createIndex({ telegramId: 1 }, { unique: true });
+ await WeeklyLeaderboard.collection.createIndex({ score: -1 });
+await WeeklyLeaderboard.collection.createIndex({ date: 1 });
+await UserProfile.collection.createIndex({ telegramId: 1 }, { unique: true });
 
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
