@@ -312,7 +312,40 @@
       leaderboardElement.innerHTML = '<p>Failed to load leaderboard</p>';
     }
   }
+// Функция для отправки данных пользователя на сервер
+async function sendUserDataToServer() {
+  const userData = getTelegramUserData();
+  
+  try {
+    const response = await fetch(`${API_URL}/api/save-user`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        telegramId: userData.id,
+        username: userData.username,
+        firstName: userData.first_name,
+        lastName: userData.last_name
+      })
+    });
 
+    const data = await response.json();
+    console.log('User data saved:', data);
+  } catch (error) {
+    console.error('Error saving user data:', error);
+  }
+}
+
+// Вызываем при загрузке страницы
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.Telegram && window.Telegram.WebApp) {
+    window.Telegram.WebApp.expand();
+    sendUserDataToServer(); // Отправляем данные пользователя
+    updateUserInfo();
+  }
+});
+  
   function drawMatrix() {
     matrixCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
     matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
