@@ -56,47 +56,6 @@
       z-index: 10;
     }
 
-/* Add these new styles */
-.swipe-trail {
-  position: absolute;
-  height: 8px;
-  background: rgba(220, 20, 60, 0.7);
-  border-radius: 4px;
-  transform-origin: left center;
-  z-index: 10;
-  pointer-events: none;
-}
-
-.swipe-arrow {
-  position: absolute;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  z-index: 11;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.control-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 4;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr 1fr;
-  pointer-events: none;
-}
-
-.control-zone {
-  pointer-events: auto;
-  opacity: 0;
-}  
-
-
-
     .sound-control {
       position: fixed;
       top: 15px;
@@ -154,6 +113,25 @@
     .leaderboard-entry:nth-child(3) { color: #cd7f32; font-weight: bold; }
     .current-user { color: crimson !important; }
 
+    /* Зоны для тапов */
+    .control-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 4;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: 1fr 1fr 1fr;
+      pointer-events: none;
+    }
+
+    .control-zone {
+      pointer-events: auto;
+      opacity: 0;
+    }
+
     @media (max-width: 768px) {
       canvas#game {
         width: 100%;
@@ -169,48 +147,30 @@
   <h1 style="text-align: center; z-index:3; position:relative; color: crimson;">FoX GeM</h1>
   <div id="game-over-text">GAME OVER<br><span style="font-size: 0.6em;">Score: <span id="final-score">0</span></span></div>
   <canvas id="game" width="400" height="400"></canvas>
-<!-- Touch control overlay -->
-<div id="swipeFeedback" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:10;pointer-events:none;"></div>
 
-<div class="control-overlay">
-  <div class="control-zone" data-direction="up"></div>
-  <div class="control-zone" data-direction="up"></div>
-  <div class="control-zone" data-direction="up"></div>
-  <div class="control-zone" data-direction="left"></div>
-  <div class="control-zone"></div>
-  <div class="control-zone" data-direction="right"></div>
-  <div class="control-zone" data-direction="down"></div>
-  <div class="control-zone" data-direction="down"></div>
-  <div class="control-zone" data-direction="down"></div>
-</div>
+  <!-- Зоны для управления тапами -->
+  <div class="control-overlay">
+    <div class="control-zone" data-direction="up"></div>
+    <div class="control-zone" data-direction="up"></div>
+    <div class="control-zone" data-direction="up"></div>
+    <div class="control-zone" data-direction="left"></div>
+    <div class="control-zone"></div>
+    <div class="control-zone" data-direction="right"></div>
+    <div class="control-zone" data-direction="down"></div>
+    <div class="control-zone" data-direction="down"></div>
+    <div class="control-zone" data-direction="down"></div>
+  </div>
+
   <div class="menu">
     <button class="button" onclick="startGame()">Play</button>
     <button class="button" onclick="showAccountPopup()">Account</button>
     <button class="button" onclick="showLeaderboardPopup()">Leaderboard</button>
   </div>
 
-  <div id="account-popup" class="popup">
-    <span class="close-btn" onclick="togglePopup('account-popup')">✖</span>
-    <h2 style="color: crimson; margin-top: 0;">Your Account</h2>
-    <div class="account-info">
-      <p><b>ID:</b> <span id="userId"></span></p>
-      <p><b>Username:</b> <span id="username">Guest</span></p>
-      <p><b>Name:</b> <span id="userFullname">Guest</span></p>
-      <p><b>Games played:</b> <span id="gamesPlayed">0</span></p>
-      <p><b>Best score:</b> <span id="userBestScore">0</span></p>
-    </div>
-  </div>
-
-  <div id="leaderboard-popup" class="popup">
-    <span class="close-btn" onclick="togglePopup('leaderboard-popup')">✖</span>
-    <h2 style="color: crimson; margin-top: 0;">Top Players</h2>
-    <div id="leaderboard"></div>
-  </div>
-
-  
+  <!-- [Остальные попапы оставьте как есть] -->
 
   <script>
-    // Game variables
+    // Игровые переменные
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
     const box = 20;
@@ -219,12 +179,10 @@
     let food;
     let gameLoop;
     let score = 0;
-    let gamesPlayed = 0;
-    let bestScore = 0;
     const gameOverText = document.getElementById('game-over-text');
     const finalScoreElement = document.getElementById('final-score');
 
-    // Sound effects
+    // Звуки
     const soundEffects = {
       eat: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3'),
       gameOver: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-retro-arcade-lose-2027.mp3'),
@@ -240,11 +198,11 @@
     function playSound(sound) {
       if (soundEnabled && soundEffects[sound]) {
         soundEffects[sound].currentTime = 0;
-        soundEffects[sound].play().catch(e => console.log('Sound play error:', e));
+        soundEffects[sound].play().catch(e => console.log('Sound error:', e));
       }
     }
 
-    // Initialize game
+    // Инициализация игры
     function initGame() {
       snake = [{x: 9 * box, y: 10 * box}];
       direction = 'right';
@@ -261,7 +219,7 @@
         y: Math.floor(Math.random() * 20) * box,
       };
       
-      // Make sure food doesn't appear on snake
+      // Проверка, чтобы еда не появилась на змейке
       for (let i = 0; i < snake.length; i++) {
         if (food.x === snake[i].x && food.y === snake[i].y) {
           generateFood();
@@ -270,25 +228,33 @@
       }
     }
 
-   
- <script>
-    // [Previous game variables and sound code remains the same until the draw() function]
-
     function draw() {
-      // Draw background with pulse effect
-      const pulse = Math.sin(Date.now() / 500) * 0.1 + 0.9;
-      ctx.fillStyle = `rgba(0, 0, 0, ${pulse})`;
+      // Фон с сеткой
+      ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Рисуем сетку (матрицу)
+      ctx.strokeStyle = 'rgba(50, 200, 50, 0.3)';
+      ctx.lineWidth = 0.5;
+      for (let i = 0; i < canvas.width; i += box) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, canvas.height);
+        ctx.stroke();
+      }
+      for (let j = 0; j < canvas.height; j += box) {
+        ctx.beginPath();
+        ctx.moveTo(0, j);
+        ctx.lineTo(canvas.width, j);
+        ctx.stroke();
+      }
 
-      // Draw dynamic grid
-      drawGrid(box, `rgba(50, 200, 50, ${0.3 + snake.length / 100})`);
-
-      // Draw snake
+      // Змейка
       for (let i = 0; i < snake.length; i++) {
         ctx.fillStyle = i === 0 ? 'crimson' : 'darkred';
         ctx.fillRect(snake[i].x, snake[i].y, box, box);
         
-        // Add eyes to head
+        // Глаза
         if (i === 0) {
           ctx.fillStyle = 'white';
           const eyeSize = box / 5;
@@ -310,13 +276,13 @@
         }
       }
 
-      // Draw food (changed to white)
+      // Еда (белая)
       ctx.fillStyle = 'white';
       ctx.beginPath();
       ctx.arc(food.x + box/2, food.y + box/2, box/2 - 2, 0, Math.PI * 2);
       ctx.fill();
 
-      // Move snake
+      // Движение
       let headX = snake[0].x;
       let headY = snake[0].y;
 
@@ -325,7 +291,7 @@
       if (direction === 'up') headY -= box;
       if (direction === 'down') headY += box;
 
-      // Check collision
+      // Столкновения
       if (
         headX < 0 || headX >= canvas.width ||
         headY < 0 || headY >= canvas.height ||
@@ -335,31 +301,32 @@
         return;
       }
 
-      // Check if snake eats food
+      // Съела еду
       if (headX === food.x && headY === food.y) {
         playSound('eat');
-        score += 3;
+        score += 3; // +3 очка
         generateFood();
       } else {
         snake.pop();
       }
 
-      const newHead = {x: headX, y: headY};
-      snake.unshift(newHead);
+      snake.unshift({x: headX, y: headY});
     }
 
-    function drawGrid(step, color) {
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 0.3;
-      for (let i = 0; i < canvas.width; i += step) {
-        ctx.beginPath();
-        ctx.moveTo(i, 0);
-        ctx.lineTo(i, canvas.height);
-        ctx.stroke();
+    function collision(head, array) {
+      for (let i = 0; i < array.length; i++) {
+        if (head.x === array[i].x && head.y === array[i].y) {
+          return true;
+        }
       }
-      for (let j = 0; j < canvas.height; j += step) {
-        ctx.begin
-      // Save score
+      return false;
+    }
+
+    function gameOver() {
+      clearInterval(gameLoop);
+      playSound('gameOver');
+      finalScoreElement.textContent = score;
+      gameOverText.style.display = 'block';
       saveScore();
     }
 
@@ -368,129 +335,29 @@
       initGame();
     }
 
-    // User data functions
-    function getTelegramUserData() {
-      if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
-        const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
-        return {
-          id: tgUser.id,
-          username: tgUser.username || `user_${tgUser.id}`,
-          firstName: tgUser.first_name || 'User',
-          lastName: tgUser.last_name || ''
-        };
-      }
-      return {
-        id: Math.floor(1000000 + Math.random() * 9000000),
-        username: 'Guest',
-        firstName: 'Guest',
-        lastName: ''
-      };
-    }
-
-    async function saveScore() {
-      const userData = getTelegramUserData();
-      
-      try {
-        const response = await fetch('/api/save', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            telegramId: userData.id,
-            username: userData.username,
-            firstName: userData.firstName,
-            lastName: userData.lastName,
-            score: score
-          })
-        });
-
-        const data = await response.json();
-        if (data.success) {
-          updateUserInfo();
+    // Управление тапами
+    document.querySelectorAll('.control-zone').forEach(zone => {
+      zone.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const newDirection = zone.getAttribute('data-direction');
+        if (newDirection && direction !== oppositeDirection(newDirection)) {
+          playSound('move');
+          direction = newDirection;
         }
-      } catch (error) {
-        console.error('Save error:', error);
+      });
+    });
+
+    function oppositeDirection(dir) {
+      switch (dir) {
+        case 'left': return 'right';
+        case 'right': return 'left';
+        case 'up': return 'down';
+        case 'down': return 'up';
+        default: return '';
       }
     }
 
-    async function updateUserInfo() {
-      const userData = getTelegramUserData();
-      document.getElementById('userId').textContent = userData.id;
-      document.getElementById('username').textContent = userData.username;
-      document.getElementById('userFullname').textContent = `${userData.firstName} ${userData.lastName}`.trim();
-
-      try {
-        const response = await fetch(`/api/user/${userData.id}`);
-        const data = await response.json();
-
-        if (data.success) {
-          document.getElementById('gamesPlayed').textContent = data.stats.gamesPlayed;
-          document.getElementById('userBestScore').textContent = data.stats.bestScore;
-          bestScore = data.stats.bestScore;
-          gamesPlayed = data.stats.gamesPlayed;
-        }
-      } catch (error) {
-        console.error('Load user error:', error);
-      }
-    }
-
-    async function displayLeaderboard() {
-      const leaderboardElement = document.getElementById('leaderboard');
-      leaderboardElement.innerHTML = '<p>Loading leaderboard...</p>';
-
-      try {
-        const response = await fetch('/api/leaderboard');
-        const data = await response.json();
-
-        if (data.success) {
-          leaderboardElement.innerHTML = '';
-
-          if (data.leaders.length === 0) {
-            leaderboardElement.innerHTML = '<p>No players yet!</p>';
-            return;
-          }
-
-          const userData = getTelegramUserData();
-
-          data.leaders.forEach((player, index) => {
-            const entry = document.createElement('div');
-            entry.className = `leaderboard-entry ${player.user.telegramId === userData.id ? 'current-user' : ''}`;
-            
-            const playerName = player.user.username || 
-                              `${player.user.firstName || ''} ${player.user.lastName || ''}`.trim() || 
-                              `User ${player.user.telegramId}`;
-            
-            entry.innerHTML = `
-              <span>${index + 1}. ${playerName}</span>
-              <span>${player.score}</span>
-            `;
-            leaderboardElement.appendChild(entry);
-          });
-        }
-      } catch (error) {
-        console.error('Load leaderboard error:', error);
-        leaderboardElement.innerHTML = '<p>Failed to load leaderboard</p>';
-      }
-    }
-
-    // Popup functions
-    function togglePopup(id) {
-      const popup = document.getElementById(id);
-      popup.style.display = popup.style.display === 'flex' ? 'none' : 'flex';
-    }
-
-    function showAccountPopup() {
-      updateUserInfo();
-      togglePopup('account-popup');
-    }
-
-    function showLeaderboardPopup() {
-      displayLeaderboard();
-      togglePopup('leaderboard-popup');
-    }
-
-    // Keyboard controls
+    // Клавиатура
     document.addEventListener('keydown', e => {
       if (['ArrowLeft', 'ArrowUp', 'ArrowRight', 'ArrowDown', 'a', 'w', 'd', 's'].includes(e.key)) {
         e.preventDefault();
@@ -511,63 +378,14 @@
       }
     });
 
-    // Joystick controls
-  // New swipe controls system
-let swipeStart = null;
-let swipeTrail = null;
-let swipeArrow = null;
-let velocity = 0;
-const maxVelocity = 15;
+    // [Остальные функции (Telegram, попапы) оставьте как есть]
 
-function createSwipeElement() {
-  swipeTrail = document.createElement('div');
-  swipeTrail.className = 'swipe-trail';
-  swipeArrow = document.createElement('div');
-  swipeArrow.className = 'swipe-arrow';
-  document.getElementById('swipeFeedback').appendChild(swipeTrail);
-  document.getElementById('swipeFeedback').appendChild(swipeArrow);
-}
-
-function updateSwipeElement(x1, y1, x2, y2) {
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-  const length = Math.sqrt(dx*dx + dy*dy);
-  const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-  
-  swipeTrail.style.width = `${length}px`;
-  swipeTrail.style.left = `${x1}px`;
-  swipeTrail.style.top = `${y1 - 4}px`;
-  swipeTrail.style.transform = `rotate(${angle}deg)`;
-  
-  swipeArrow.style.left = `${x2}px`;
-  swipeArrow.style.top = `${y2}px`;
-  swipeArrow.style.borderWidth = `0 15px 25px 15px`;
-  swipeArrow.style.borderColor = `transparent transparent rgba(220, 20, 60, 0.9) transparent`;
-  swipeArrow.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
-  swipeArrow.style.opacity = length > 50 ? '1' : '0';
-  
-  velocity = Math.min(maxVelocity, Math.floor(length / 10));
-}
-
-// ... [Rest of the swipe control code from previous message]
-// Add ALL remaining swipe control functions from the example
-
-
- 
-
-
-    // Initialize
+    // Запуск
     document.addEventListener('DOMContentLoaded', () => {
-      if (window.Telegram && window.Telegram.WebApp) {
+      if (window.Telegram?.WebApp) {
         window.Telegram.WebApp.expand();
         updateUserInfo();
       }
-      
-      // Start with account popup to show user data
-      showAccountPopup();
-      setTimeout(() => {
-        togglePopup('account-popup');
-      }, 500);
     });
   </script>
 </body>
