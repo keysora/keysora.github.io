@@ -270,30 +270,19 @@
       }
     }
 
-    function draw() {
-      // Draw background
-      const pulse = Math.sin(Date.now() / 500) * 0.1 + 0.9;
-  ctx.fillStyle = `rgba(0, 0, 0, ${pulse})`;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+   
+ <script>
+    // [Previous game variables and sound code remains the same until the draw() function]
 
-        drawGrid(box, `rgba(50, 200, 50, ${0.3 + snake.length / 100})`);
-      }
-    function drawGrid(step, color) {
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 0.3;
-  for (let i = 0; i < canvas.width; i += step) {
-    ctx.beginPath();
-    ctx.moveTo(i, 0);
-    ctx.lineTo(i, canvas.height);
-    ctx.stroke();
-  }
-  for (let j = 0; j < canvas.height; j += step) {
-    ctx.beginPath();
-    ctx.moveTo(0, j);
-    ctx.lineTo(canvas.width, j);
-    ctx.stroke();
-  }
-}
+    function draw() {
+      // Draw background with pulse effect
+      const pulse = Math.sin(Date.now() / 500) * 0.1 + 0.9;
+      ctx.fillStyle = `rgba(0, 0, 0, ${pulse})`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw dynamic grid
+      drawGrid(box, `rgba(50, 200, 50, ${0.3 + snake.length / 100})`);
+
       // Draw snake
       for (let i = 0; i < snake.length; i++) {
         ctx.fillStyle = i === 0 ? 'crimson' : 'darkred';
@@ -321,8 +310,8 @@
         }
       }
 
-      // Draw food
-      ctx.fillStyle = 'lime';
+      // Draw food (changed to white)
+      ctx.fillStyle = 'white';
       ctx.beginPath();
       ctx.arc(food.x + box/2, food.y + box/2, box/2 - 2, 0, Math.PI * 2);
       ctx.fill();
@@ -359,21 +348,17 @@
       snake.unshift(newHead);
     }
 
-    function collision(head, array) {
-      for (let i = 0; i < array.length; i++) {
-        if (head.x === array[i].x && head.y === array[i].y) {
-          return true;
-        }
+    function drawGrid(step, color) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 0.3;
+      for (let i = 0; i < canvas.width; i += step) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, canvas.height);
+        ctx.stroke();
       }
-      return false;
-    }
-
-    function gameOver() {
-      clearInterval(gameLoop);
-      playSound('gameOver');
-      finalScoreElement.textContent = score;
-      gameOverText.style.display = 'block';
-      
+      for (let j = 0; j < canvas.height; j += step) {
+        ctx.begin
       // Save score
       saveScore();
     }
