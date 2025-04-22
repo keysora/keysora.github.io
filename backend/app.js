@@ -10,30 +10,30 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../public'))); // Serve static files
+app.use(express.static(path.join(__dirname, 'public')));
 
 // MongoDB Models
-const WeeklyLeaderboard = mongoose.model('WeeklyLeaderboard', new mongoose.Schema({
+const weeklyLeaderboardSchema = new mongoose.Schema({
   telegramId: { type: Number, required: true, index: true },
   score: { type: Number, required: true },
   date: { type: Date, default: Date.now }
-}), 'weekly_leaderboard');
+});
 
-const UserProfile = mongoose.model('UserProfile', new mongoose.Schema({
+const userProfileSchema = new mongoose.Schema({
   telegramId: { type: Number, required: true, unique: true },
   username: { type: String },
   firstName: { type: String },
   lastName: { type: String },
   joinDate: { type: Date, default: Date.now }
-}), 'user_profiles');
+});
+
+const WeeklyLeaderboard = mongoose.model('WeeklyLeaderboard', weeklyLeaderboardSchema, 'weekly_leaderboard');
+const UserProfile = mongoose.model('UserProfile', userProfileSchema, 'user_profiles');
 
 // Telegram Bot
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
-
-// Web App URL (replace with your actual URL)
 const WEB_APP_URL = process.env.WEB_APP_URL || 'https://keysora.github.io';
 
-    
 // Bot Commands
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
@@ -51,41 +51,78 @@ bot.onText(/\/start/, (msg) => {
   });
 });
 
-// Handle game data submissions from Web App
+// API Endpoints
 app.post('/api/save', async (req, res) => {
   try {
     const { telegramId, username, firstName, lastName, score } = req.body;
     
-    const leaderboardEntry = await WeeklyLeaderboard.create({ telegramId, score });
+    // Validate and normalize data
+    const userData = {
+      telegramId: Number(telegramId),
+      username: username || `user_${telegramId}`,
+      firstName: firstName || 'Unknown',
+      lastName: lastName || '',
+      score: Number(score)
+    };
+
+    // Save to leaderboard
+    const leaderboardEntry = await WeeklyLeaderboard.create({ 
+      telegramId: userData.telegramId, 
+      score: userData.score 
+    });
     
-    await UserProfile.updateOne(
-      { telegramId },
+    // Update user profile
+    await UserProfile.findOneAndUpdate(
+      { telegramId: userData.telegramId },
       { 
-        $setOnInsert: { 
-          username, 
-          firstName, 
-          lastName,
-          joinDate: new Date() 
-        }
+        username: userData.username,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        $setOnInsert: { joinDate: new Date() }
       },
-      { upsert: true }
+      { upsert: true, new: true }
     );
     
-    await bot.sendMessage(telegramId, `🎉 Ваш результат ${score} сохранен!`);
     res.json({ success: true, entry: leaderboardEntry });
     
   } catch (error) {
     console.error('Save error:', error);
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// Game endpoint (serves your game HTML)
-app.get('/game', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/game.html'));
+app.get('/api/user/:id', async (req, res) => {
+  try {
+    const user = await UserProfile.findOne({ telegramId: Number(req.params.id) });
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    
+    const bestScore = await WeeklyLeaderboard.findOne({ telegramId: Number(req.params.id) })
+      .sort({ score: -1 })
+      .limit(1);
+      
+    const gamesPlayed = await WeeklyLeaderboard.countDocuments({ telegramId: Number(req.params.id) });
+    
+    res.json({
+      success: true,
+      user: {
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        joinDate: user.joinDate
+      },
+      stats: {
+        bestScore: bestScore?.score || 0,
+        gamesPlayed
+      }
+    });
+  } catch (error) {
+    console.error('User data error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
 });
 
-// Leaderboard API
 app.get('/api/leaderboard', async (req, res) => {
   try {
     const leaders = await WeeklyLeaderboard.aggregate([
@@ -106,15 +143,21 @@ app.get('/api/leaderboard', async (req, res) => {
           date: 1,
           "user.username": 1,
           "user.firstName": 1,
-          "user.lastName": 1
+          "user.lastName": 1,
+          "user.telegramId": 1
         }
       }
     ]);
-  res.json({ success: true, leaders });
+    res.json({ success: true, leaders });
   } catch (error) {
     console.error('Leaderboard error:', error);
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, error: error.message });
   }
+});
+
+// Serve game HTML
+app.get('/game', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Health check
@@ -135,11 +178,10 @@ mongoose.connect(process.env.MONGODB_URI, {
   console.log('✅ MongoDB connected successfully');
   
   // Create indexes
-  WeeklyLeaderboard.createIndex({ score: -1 });
-  WeeklyLeaderboard.createIndex({ date: 1 });
-  UserProfile.createIndex({ telegramId: 1 }, { unique: true });
+  WeeklyLeaderboard.createIndexes();
+  UserProfile.createIndexes();
 
-  const PORT = process.env.PORT || 5000;
+  const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`🕹️ Game WebApp URL: ${WEB_APP_URL}`);
