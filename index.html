@@ -13,7 +13,6 @@
       color: white;
       overflow: hidden;
     }
-
     canvas#game {
       display: block;
       margin: 20px auto;
@@ -21,7 +20,6 @@
       z-index: 2;
       position: relative;
     }
-
     canvas#matrix {
       position: fixed;
       top: 0;
@@ -29,7 +27,6 @@
       z-index: 0;
       pointer-events: none;
     }
-
     .menu, .account-popup, .leaderboard-popup {
       margin-top: 20px;
       display: flex;
@@ -38,7 +35,6 @@
       position: relative;
       z-index: 3;
     }
-
     .button, .control-btn {
       padding: 10px 20px;
       background-color: crimson;
@@ -48,8 +44,7 @@
       cursor: pointer;
       font-size: 1em;
     }
-
- .mobile-controls {
+    .mobile-controls {
       display: none;
       flex-direction: column;
       margin-top: 20px;
@@ -57,20 +52,17 @@
       z-index: 3;
       position: relative;
     }
-
     .mobile-controls .row {
       display: flex;
       justify-content: center;
       gap: 10px;
       margin-bottom: 10px;
     }
-
     @media (max-width: 768px) {
       .mobile-controls {
         display: flex;
       }
     }
-
     .popup {
       position: fixed;
       top: 50%;
@@ -88,7 +80,6 @@
       max-height: 80vh;
       overflow-y: auto;
     }
-
     .close-btn {
       align-self: flex-end;
       cursor: pointer;
@@ -96,8 +87,7 @@
       font-size: 1.5em;
       margin-bottom: 10px;
     }
-
- #game-over-text {
+    #game-over-text {
       position: absolute;
       top: 50%;
       left: 50%;
@@ -109,19 +99,16 @@
       display: none;
       animation: fadeIn 0.5s ease-in-out;
     }
-
     @keyframes fadeIn {
       from { opacity: 0; }
       to { opacity: 1; }
     }
-
     .leaderboard-entry {
       display: flex;
       justify-content: space-between;
       padding: 5px 0;
       border-bottom: 1px solid #333;
     }
-
     .leaderboard-entry:nth-child(1) {
       color: gold;
       font-weight: bold;
@@ -134,16 +121,13 @@
       color: #cd7f32;
       font-weight: bold;
     }
-
     .account-info {
       margin-bottom: 15px;
     }
-
     .current-user {
       color: crimson !important;
     }
-
- </style>
+  </style>
 </head>
 <body>
   <canvas id="matrix"></canvas>
@@ -154,7 +138,7 @@
   <div class="menu">
     <button class="button" onclick="startGame()">Play</button>
     <button class="button" onclick="showAccountPopup()">Account</button>
-    <button class="button" onclick="showLeaderboardPopup()">Top players this week</but>
+    <button class="button" onclick="showLeaderboardPopup()">Top players this week</button>
   </div>
 
   <div id="account-popup" class="popup">
@@ -209,19 +193,17 @@
   const matrixColumns = Math.floor(matrixCanvas.width / 10);
   const drops = Array(matrixColumns).fill(1);
 
-  // Backend API URL (replace with your Render.com URL)
-  const API_URL = 'http://45.32.69.112:3000'
+  // Backend API URL
+  const API_URL = 'http://45.32.69.112:3000';
 
   // User data
   const userId = generateUserId();
   document.getElementById('userId').textContent = userId;
 
-  // Generate random 7-digit user ID
   function generateUserId() {
     return Math.floor(1000000 + Math.random() * 9000000);
   }
 
-  // Get Telegram user data
   function getTelegramUserData() {
     if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
       const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
@@ -238,11 +220,11 @@
       first_name: 'Guest',
       last_name: ''
     };
+  }
 
- // Save score to backend
   async function saveUserData(score) {
     const userData = getTelegramUserData();
-
+    
     try {
       const response = await fetch(`${API_URL}/api/save`, {
         method: 'POST',
@@ -264,8 +246,7 @@
       }
     } catch (error) {
       console.error('Save error:', error);
-      // Fallback to localStorage
-      const savedData = JSON.parse(localStorage.getItem(`snake_user_${userData.id}`)) >
+      const savedData = JSON.parse(localStorage.getItem(`snake_user_${userData.id}`)) || {};
       gamesPlayed = (savedData.gamesPlayed || 0) + 1;
       bestScore = Math.max(score, savedData.bestScore || 0);
       localStorage.setItem(`snake_user_${userData.id}`, JSON.stringify({
@@ -275,27 +256,24 @@
     }
   }
 
-  // Update user info from backend
   async function updateUserInfo() {
     const userData = getTelegramUserData();
     document.getElementById('username').textContent = userData.username || 'Guest';
-    document.getElementById('userFullname').textContent = `${userData.first_name} ${us>
-
+    document.getElementById('userFullname').textContent = `${userData.first_name} ${userData.last_name}`.trim() || 'Guest';
+    
     try {
       const response = await fetch(`${API_URL}/api/user?id=${userData.id}`);
       const data = await response.json();
-
+      
       if (data) {
         gamesPlayed = data.gamesPlayed || 0;
         bestScore = data.bestScore || 0;
         document.getElementById('gamesPlayed').textContent = gamesPlayed;
         document.getElementById('userBestScore').textContent = bestScore;
       }
-
- } catch (error) {
+    } catch (error) {
       console.error('Load user error:', error);
-      // Fallback to localStorage
-      const savedData = JSON.parse(localStorage.getItem(`snake_user_${userData.id}`)) >
+      const savedData = JSON.parse(localStorage.getItem(`snake_user_${userData.id}`)) || {};
       gamesPlayed = savedData.gamesPlayed || 0;
       bestScore = savedData.bestScore || 0;
       document.getElementById('gamesPlayed').textContent = gamesPlayed;
@@ -303,27 +281,26 @@
     }
   }
 
-  // Display leaderboard from backend
   async function displayLeaderboard() {
     const leaderboardElement = document.getElementById('leaderboard');
     leaderboardElement.innerHTML = '<p>Loading leaderboard...</p>';
-
+    
     try {
       const response = await fetch(`${API_URL}/api/leaderboard`);
       const leaderboard = await response.json();
-
+      
       leaderboardElement.innerHTML = '';
-
+      
       if (leaderboard.length === 0) {
         leaderboardElement.innerHTML = '<p>No players yet this week!</p>';
         return;
       }
-
+      
       const userData = getTelegramUserData();
-
+      
       leaderboard.forEach((player, index) => {
         const entry = document.createElement('div');
-        entry.className = `leaderboard-entry ${player.userId === userData.id ? 'curren>
+        entry.className = `leaderboard-entry ${player.userId === userData.id ? 'current-user' : ''}`;
         entry.innerHTML = `
           <span>${index + 1}. ${player.username || 'Anonymous'}</span>
           <span>${player.score}</span>
@@ -336,7 +313,7 @@
     }
   }
 
- function drawMatrix() {
+  function drawMatrix() {
     matrixCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
     matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
     matrixCtx.fillStyle = 'crimson';
@@ -373,14 +350,11 @@
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw snake (all parts in matrix color)
     for (let i = 0; i < snake.length; i++) {
       ctx.fillStyle = 'crimson';
       ctx.fillRect(snake[i].x, snake[i].y, box, box);
     }
 
-
- // Draw food (white)
     ctx.fillStyle = '#fff';
     ctx.fillRect(food.x, food.y, box, box);
 
@@ -392,7 +366,6 @@
     if (direction === 'up') headY -= box;
     if (direction === 'down') headY += box;
 
-    // Collision
     if (
       headX < 0 || headX >= canvas.width ||
       headY < 0 || headY >= canvas.height ||
@@ -402,7 +375,6 @@
       return;
     }
 
-    // Eat food - 3 points per food
     if (headX === food.x && headY === food.y) {
       food = {
         x: Math.floor(Math.random() * 20) * box,
@@ -421,16 +393,13 @@
     clearInterval(gameLoop);
     matrixInterval = setInterval(drawMatrix, 50);
     gameOverText.style.display = 'block';
-
-    // Save game results
+    
     saveUserData(score);
-
-    // Update UI
     updateUserInfo();
     displayLeaderboard();
   }
 
- function collision(head, array) {
+  function collision(head, array) {
     for (let i = 0; i < array.length; i++) {
       if (head.x === array[i].x && head.y === array[i].y) {
         return true;
@@ -439,7 +408,6 @@
     return false;
   }
 
-  // Popup functions
   function togglePopup(id) {
     const popup = document.getElementById(id);
     popup.style.display = popup.style.display === 'flex' ? 'none' : 'flex';
@@ -455,7 +423,6 @@
     togglePopup('leaderboard-popup');
   }
 
-  // PC Controls
   document.addEventListener('keydown', e => {
     if (e.key === 'ArrowLeft' && direction !== 'right') direction = 'left';
     else if (e.key === 'ArrowUp' && direction !== 'down') direction = 'up';
@@ -463,7 +430,6 @@
     else if (e.key === 'ArrowDown' && direction !== 'up') direction = 'down';
   });
 
-  // Mobile Controls
   function setDirection(dir) {
     if (dir === 'left' && direction !== 'right') direction = 'left';
     else if (dir === 'up' && direction !== 'down') direction = 'up';
@@ -479,17 +445,13 @@
     btn.addEventListener('mousedown', () => setDirection(btn.dataset.dir));
   });
 
- // Initialize
   updateUserInfo();
   displayLeaderboard();
 
-  // Telegram WebApp integration
   document.addEventListener('DOMContentLoaded', () => {
     if (window.Telegram && window.Telegram.WebApp) {
-      // Expand the app to full view
       window.Telegram.WebApp.expand();
-
-      // Set up MainButton
+      
       window.Telegram.WebApp.MainButton
         .setText('Play Again')
         .onClick(() => {
@@ -497,8 +459,7 @@
           window.Telegram.WebApp.MainButton.hide();
         })
         .show();
-
-      // Update user info
+      
       updateUserInfo();
     }
   });
