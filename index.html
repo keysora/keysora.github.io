@@ -56,36 +56,6 @@
       z-index: 10;
     }
 
-    .joystick-container {
-      position: fixed;
-      bottom: 30px;
-      left: 0;
-      right: 0;
-      display: flex;
-      justify-content: center;
-      z-index: 100;
-      touch-action: none;
-    }
-
-    .joystick {
-      width: 120px;
-      height: 120px;
-      background-color: rgba(220, 20, 60, 0.3);
-      border-radius: 50%;
-      position: relative;
-    }
-
-    .joystick-knob {
-      width: 50px;
-      height: 50px;
-      background-color: rgba(220, 20, 60, 0.8);
-      border-radius: 50%;
-      position: absolute;
-      top: 35px;
-      left: 35px;
-      transition: transform 0.1s;
-    }
-
     .sound-control {
       position: fixed;
       top: 15px;
@@ -143,6 +113,25 @@
     .leaderboard-entry:nth-child(3) { color: #cd7f32; font-weight: bold; }
     .current-user { color: crimson !important; }
 
+    /* Touch control zones */
+    .control-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 4;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: 1fr 1fr 1fr;
+      pointer-events: none;
+    }
+
+    .control-zone {
+      pointer-events: auto;
+      opacity: 0;
+    }
+
     @media (max-width: 768px) {
       canvas#game {
         width: 100%;
@@ -158,6 +147,19 @@
   <h1 style="text-align: center; z-index:3; position:relative; color: crimson;">FoX GeM</h1>
   <div id="game-over-text">GAME OVER<br><span style="font-size: 0.6em;">Score: <span id="final-score">0</span></span></div>
   <canvas id="game" width="400" height="400"></canvas>
+  
+  <!-- Touch control overlay -->
+  <div class="control-overlay">
+    <div class="control-zone" data-direction="up"></div>
+    <div class="control-zone" data-direction="up"></div>
+    <div class="control-zone" data-direction="up"></div>
+    <div class="control-zone" data-direction="left"></div>
+    <div class="control-zone"></div>
+    <div class="control-zone" data-direction="right"></div>
+    <div class="control-zone" data-direction="down"></div>
+    <div class="control-zone" data-direction="down"></div>
+    <div class="control-zone" data-direction="down"></div>
+  </div>
 
   <div class="menu">
     <button class="button" onclick="startGame()">Play</button>
@@ -181,12 +183,6 @@
     <span class="close-btn" onclick="togglePopup('leaderboard-popup')">✖</span>
     <h2 style="color: crimson; margin-top: 0;">Top Players</h2>
     <div id="leaderboard"></div>
-  </div>
-
-  <div class="joystick-container">
-    <div class="joystick" id="joystick">
-      <div class="joystick-knob" id="joystickKnob"></div>
-    </div>
   </div>
 
   <script>
@@ -251,9 +247,25 @@
     }
 
     function draw() {
-      // Draw background
+      // Draw background with grid
       ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw grid lines (matrix effect)
+      ctx.strokeStyle = 'rgba(50, 50, 50, 0.5)';
+      ctx.lineWidth = 0.5;
+      for (let i = 0; i < canvas.width; i += box) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, canvas.height);
+        ctx.stroke();
+      }
+      for (let j = 0; j < canvas.height; j += box) {
+        ctx.beginPath();
+        ctx.moveTo(0, j);
+        ctx.lineTo(canvas.width, j);
+        ctx.stroke();
+      }
 
       // Draw snake
       for (let i = 0; i < snake.length; i++) {
@@ -282,8 +294,8 @@
         }
       }
 
-      // Draw food
-      ctx.fillStyle = 'lime';
+      // Draw food (white)
+      ctx.fillStyle = 'white';
       ctx.beginPath();
       ctx.arc(food.x + box/2, food.y + box/2, box/2 - 2, 0, Math.PI * 2);
       ctx.fill();
@@ -310,7 +322,7 @@
       // Check if snake eats food
       if (headX === food.x && headY === food.y) {
         playSound('eat');
-        score += 3;
+        score += 3; // 3 points per food
         generateFood();
       } else {
         snake.pop();
@@ -487,79 +499,28 @@
       }
     });
 
-    // Joystick controls
-    const joystick = document.getElementById('joystick');
-    const joystickKnob = document.getElementById('joystickKnob');
-    let activeTouchId = null;
-    let joystickCenter = { x: 0, y: 0 };
-
-    function initJoystick() {
-      const rect = joystick.getBoundingClientRect();
-      joystickCenter = {
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2
-      };
-    }
-
-    window.addEventListener('resize', initJoystick);
-    initJoystick();
-
-    joystick.addEventListener('touchstart', (e) => {
-      if (activeTouchId !== null) return;
-      activeTouchId = e.changedTouches[0].identifier;
-      handleJoystickMove(e.changedTouches[0]);
-      e.preventDefault();
-    });
-
-    document.addEventListener('touchmove', (e) => {
-      if (activeTouchId === null) return;
-      
-      const touch = Array.from(e.changedTouches).find(t => t.identifier === activeTouchId);
-      if (touch) {
-        handleJoystickMove(touch);
+    // Touch controls
+    const controlZones = document.querySelectorAll('.control-zone[data-direction]');
+    controlZones.forEach(zone => {
+      zone.addEventListener('touchstart', (e) => {
         e.preventDefault();
-      }
-    });
-
-    document.addEventListener('touchend', (e) => {
-      if (activeTouchId === null) return;
-      
-      const touch = Array.from(e.changedTouches).find(t => t.identifier === activeTouchId);
-      if (touch) {
-        resetJoystick();
-        e.preventDefault();
-      }
-    });
-
-    function handleJoystickMove(touch) {
-      const dx = touch.clientX - joystickCenter.x;
-      const dy = touch.clientY - joystickCenter.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      const maxDistance = 60;
-      const angle = Math.atan2(dy, dx);
-      const ratio = Math.min(1, distance / maxDistance);
-
-      // Update joystick knob position
-      joystickKnob.style.transform = `translate(${dx * ratio}px, ${dy * ratio}px)`;
-
-      // Determine direction
-      if (ratio > 0.3) {
-        const sector = Math.floor((angle + Math.PI) / (Math.PI / 2)) % 4;
-        
-        let newDirection;
-        switch (sector) {
-          case 0: newDirection = 'left'; break;
-          case 1: newDirection = 'up'; break;
-          case 2: newDirection = 'right'; break;
-          case 3: newDirection = 'down'; break;
-        }
-
-        if (newDirection && direction !== oppositeDirection(newDirection)) {
+        const newDirection = zone.getAttribute('data-direction');
+        if (direction !== oppositeDirection(newDirection)) {
           playSound('move');
           direction = newDirection;
         }
-      }
-    }
+      });
+      
+      // For mouse controls in web version
+      zone.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        const newDirection = zone.getAttribute('data-direction');
+        if (direction !== oppositeDirection(newDirection)) {
+          playSound('move');
+          direction = newDirection;
+        }
+      });
+    });
 
     function oppositeDirection(dir) {
       switch (dir) {
@@ -569,11 +530,6 @@
         case 'down': return 'up';
         default: return '';
       }
-    }
-
-    function resetJoystick() {
-      joystickKnob.style.transform = 'translate(0, 0)';
-      activeTouchId = null;
     }
 
     // Initialize
