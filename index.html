@@ -206,23 +206,23 @@
   const gameOverText = document.getElementById('game-over-text');
 
    // Sound effects
-//    const soundEffects = {
-//  eat: new Audio('https://raw.githubusercontent.com/keysora/keysora.github.io/main/sounds/eat.mp3'),
-//  gameOver: new Audio('https://raw.githubusercontent.com/keysora/keysora.github.io/main/sounds/game-over.mp3'),
-//  move: new Audio('https://raw.githubusercontent.comckeysora/keysora.github.io/main/sounds/move.mp3')
-//};
-
-  const soundEffects = {
-  eat: loadAudio('sounds/eat.mp3'),
-  gameOver: loadAudio('sounds/game-over.mp3'),
-  move: loadAudio('sounds/move.mp3')
+   const soundEffects = {
+ eat: new Audio('https://raw.githubusercontent.com/keysora/keysora.github.io/main/sounds/eat.mp3'),
+  gameOver: new Audio('https://raw.githubusercontent.com/keysora/keysora.github.io/main/sounds/game-over.mp3'),
+  move: new Audio('https://raw.githubusercontent.comckeysora/keysora.github.io/main/sounds/move.mp3')
 };
 
-function loadAudio(path) {
-  const audio = new Audio(`https://raw.githubusercontent.com/keysora/keysora.github.io/main/${path}`);
-  audio.load().catch(e => console.error(`Error loading ${path}:`, e));
-  return audio;
-}
+//  const soundEffects = {
+//  eat: loadAudio('sounds/eat.mp3'),
+//  gameOver: loadAudio('sounds/game-over.mp3'),
+//  move: loadAudio('sounds/move.mp3')
+//};
+
+//function loadAudio(path) {
+//  const audio = new Audio(`https://raw.githubusercontent.com/keysora/keysora.github.io/main/${path}`);
+//  audio.load().catch(e => console.error(`Error loading ${path}:`, e));
+//  return audio;
+//}
     let soundEnabled = true;
     document.getElementById('soundControl').addEventListener('click', () => {
       soundEnabled = !soundEnabled;
