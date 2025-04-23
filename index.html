@@ -63,6 +63,26 @@
         display: flex;
       }
     }
+
+
+     .sound-control {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      z-index: 100;
+      background: rgba(0, 0, 0, 0.7);
+      border: 2px solid crimson;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    
     .popup {
       position: fixed;
       top: 50%;
@@ -183,6 +203,26 @@
   let gamesPlayed = 0;
   let bestScore = 0;
   const gameOverText = document.getElementById('game-over-text');
+
+   // Sound effects
+    const soundEffects = {
+      eat: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3'),
+      gameOver: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-retro-arcade-lose-2027.mp3'),
+      move: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-quick-jump-arcade-game-239.mp3')
+    };
+
+    let soundEnabled = true;
+    document.getElementById('soundControl').addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      document.getElementById('soundControl').textContent = soundEnabled ? '🔊' : '🔇';
+    });
+
+    function playSound(sound) {
+      if (soundEnabled && soundEffects[sound]) {
+        soundEffects[sound].currentTime = 0;
+        soundEffects[sound].play().catch(e => console.log('Sound play error:', e));
+      }
+    }
 
   // Matrix setup
   const matrixCanvas = document.getElementById('matrix');
