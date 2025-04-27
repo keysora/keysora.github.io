@@ -66,22 +66,22 @@
 
 
      .sound-control {
-      position: fixed;
-      top: 15px;
-      right: 15px;
-      z-index: 100;
-      background: rgba(0, 0, 0, 0.7);
-      border: 2px solid crimson;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 20px;
-      cursor: pointer;
-    }
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid crimson;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+}
     
     .popup {
       position: fixed;
@@ -151,7 +151,7 @@
 </head>
 <body>
   <canvas id="matrix"></canvas>
-   <div class="sound-control" id="soundControl">🔊</div>
+  <div class="sound-control" id="soundControl">🔊</div>
   <h1 style="text-align: center; z-index:3; position:relative;">FoX GeM</h1>
   <div id="game-over-text">GAME OVER</div>
   <canvas id="game" width="400" height="400"></canvas>
@@ -206,35 +206,59 @@
   const gameOverText = document.getElementById('game-over-text');
 
    // Sound effects
-   const soundEffects = {
- eat: new Audio('https://raw.githubusercontent.com/keysora/keysora.github.io/main/sounds/eat.mp3'),
-  gameOver: new Audio('http://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Sevish_-__nbsp_.mp3'),
-  move: new Audio('http://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Sevish_-__nbsp_.mp3')
+// Sound objects
+const soundEffects = {
+  eat: new Audio('https://raw.githubusercontent.com/yourusername/yourrepo/main/sounds/eat.mp3'),
+  gameOver: new Audio('https://raw.githubusercontent.com/yourusername/yourrepo/main/sounds/game-over.mp3'),
+  move: new Audio('https://raw.githubusercontent.com/yourusername/yourrepo/main/sounds/move.mp3')
 };
 
-//  const soundEffects = {
-//  eat: loadAudio('sounds/eat.mp3'),
-//  gameOver: loadAudio('sounds/game-over.mp3'),
-//  move: loadAudio('sounds/move.mp3')
-//};
+// Background music
+const bgMusic = new Audio('https://raw.githubusercontent.com/keysora/keysora.github.io/main/sounds/background.mp3');
+bgMusic.loop = true; // Зацикливание музыки
 
-//function loadAudio(path) {
-//  const audio = new Audio(`https://raw.githubusercontent.com/keysora/keysora.github.io/main/${path}`);
-//  audio.load().catch(e => console.error(`Error loading ${path}:`, e));
-//  return audio;
-//}
-    let soundEnabled = true;
-    document.getElementById('soundControl').addEventListener('click', () => {
-      soundEnabled = !soundEnabled;
-      document.getElementById('soundControl').textContent = soundEnabled ? '🔊' : '🔇';
-    });
+let soundEnabled = true;
+let musicPlaying = false;
 
-    function playSound(sound) {
-      if (soundEnabled && soundEffects[sound]) {
-        soundEffects[sound].currentTime = 0;
-        soundEffects[sound].play().catch(e => console.log('Sound play error:', e));
-      }
+// Sound control element
+const soundControl = document.getElementById('soundControl');
+
+soundControl.addEventListener('click', () => {
+  soundEnabled = !soundEnabled;
+  
+  if (soundEnabled) {
+    soundControl.textContent = '🔊';
+    if (musicPlaying) {
+      bgMusic.play().catch(e => console.log('Music play error:', e));
     }
+  } else {
+    soundControl.textContent = '🔇';
+    bgMusic.pause();
+  }
+});
+
+// Function to start background music (call this when appropriate, like after user interaction)
+function startBackgroundMusic() {
+  if (soundEnabled) {
+    bgMusic.play().catch(e => console.log('Music play error:', e));
+    musicPlaying = true;
+  }
+}
+
+// Function to play sound effects
+function playSound(sound) {
+  if (soundEnabled && soundEffects[sound]) {
+    soundEffects[sound].currentTime = 0;
+    soundEffects[sound].play().catch(e => console.log('Sound play error:', e));
+  }
+}
+
+// Пример: начать музыку после первого клика пользователя
+document.body.addEventListener('click', () => {
+  if (!musicPlaying) {
+    startBackgroundMusic();
+  }
+}, { once: true });
 
   // Matrix setup
   const matrixCanvas = document.getElementById('matrix');
