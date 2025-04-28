@@ -572,12 +572,47 @@
     togglePopup('leaderboard-popup');
   }
 
-  document.addEventListener('keydown', e => {
-    if (e.key === 'ArrowLeft' && direction !== 'right') direction = 'left';
-    else if (e.key === 'ArrowUp' && direction !== 'down') direction = 'up';
-    else if (e.key === 'ArrowRight' && direction !== 'left') direction = 'right';
-    else if (e.key === 'ArrowDown' && direction !== 'up') direction = 'down';
+ // Обработка клавиатуры (для ПК)
+document.addEventListener('keydown', (e) => {
+  switch(e.key) {
+    case 'ArrowLeft':
+      if (lastDirection !== 'right') direction = 'left';
+      break;
+    case 'ArrowUp':
+      if (lastDirection !== 'down') direction = 'up';
+      break;
+    case 'ArrowRight':
+      if (lastDirection !== 'left') direction = 'right';
+      break;
+    case 'ArrowDown':
+      if (lastDirection !== 'up') direction = 'down';
+      break;
+  }
+});
+  // Обработка кнопок (для мобильных)
+function setupMobileControls() {
+  document.querySelectorAll('.control-btn').forEach(btn => {
+    // Для touch-устройств
+    btn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const dir = btn.dataset.dir;
+      if ((dir === 'left' && lastDirection !== 'right') direction = 'left';
+      else if ((dir === 'up' && lastDirection !== 'down') direction = 'up';
+      else if ((dir === 'right' && lastDirection !== 'left') direction = 'right';
+      else if ((dir === 'down' && lastDirection !== 'up') direction = 'down';
+    });
+    
+    // Для ПК (если кнопки видимы)
+    btn.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      const dir = btn.dataset.dir;
+      if ((dir === 'left' && lastDirection !== 'right') direction = 'left';
+      else if ((dir === 'up' && lastDirection !== 'down') direction = 'up';
+      else if ((dir === 'right' && lastDirection !== 'left') direction = 'right';
+      else if ((dir === 'down' && lastDirection !== 'up') direction = 'down';
+    });
   });
+}
 
   function setDirection(dir) {
     if (dir === 'left' && direction !== 'right') direction = 'left';
