@@ -498,6 +498,7 @@
   gameLoop = setInterval(draw, 100); // ✅ Теперь змейка будет двигаться
 }
 
+  
   function draw() {
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -518,11 +519,19 @@
     if (direction === 'up') headY -= box;
     if (direction === 'down') headY += box;
 
-    if (
-      headX < 0 || headX >= canvas.width ||
-      headY < 0 || headY >= canvas.height ||
-      collision({x: headX, y: headY}, snake)
-    ) {
+    // Проверка столкновений
+    let isCollision = false;
+    if (headX < 0 || headX >= canvas.width || headY < 0 || headY >= canvas.height) {
+      isCollision = true;
+    }
+    for (let i = 0; i < snake.length; i++) {
+      if (headX === snake[i].x && headY === snake[i].y) {
+        isCollision = true;
+        break;
+      }
+    }
+
+    if (isCollision) {
       gameOver();
       return;
     }
@@ -545,8 +554,7 @@
   function gameOver() {
     playSound('gameOver');
     clearInterval(gameLoop);
-    matrixInterval = setInterval(drawMatrix, 50);
-    gameOverText.style.display = 'block';
+    gameOverText.style.display = 'block'; // Показываем Game Over
     saveUserData(score);
     updateUserInfo();
     displayLeaderboard();
