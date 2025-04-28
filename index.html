@@ -376,7 +376,7 @@
     leaderboardElement.innerHTML = '<p>Loading leaderboard...</p>';
     
     try {
-      const response = await fetch(`${API_URL}/api/leaderboard`);
+      const response = await fetch(`${API_URL}/api/leaderboard');
       const leaderboard = await response.json();
       leaderboardElement.innerHTML = '';
       
@@ -485,22 +485,23 @@
       }).catch(console.error);
     }
 
-  
-    matrixCtx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
-  gameOverText.style.display = 'none';
-  snake = [{x: 9 * box, y: 10 * box}];
-  direction = 'right';
-  food = {
-    x: Math.floor(Math.random() * 20) * box,
-    y: Math.floor(Math.random() * 20) * box,
-  };
-  score = 0;
+    // Очищаем интервал матрицы и запускаем заново
+    if (matrixInterval) clearInterval(matrixInterval);
+    matrixInterval = setInterval(drawMatrix, 50);
+    
+    gameOverText.style.display = 'none';
+    snake = [{x: 9 * box, y: 10 * box}];
+    direction = 'right';
+    food = {
+      x: Math.floor(Math.random() * 20) * box,
+      y: Math.floor(Math.random() * 20) * box,
+    };
+    score = 0;
 
-  if (gameLoop) clearInterval(gameLoop);
-  gameLoop = setInterval(draw, 100); // ✅ Теперь змейка будет двигаться
-}
+    if (gameLoop) clearInterval(gameLoop);
+    gameLoop = setInterval(draw, 100);
+  }
 
-  
   function draw() {
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -556,7 +557,7 @@
   function gameOver() {
     playSound('gameOver');
     clearInterval(gameLoop);
-    gameOverText.style.display = 'block'; // Показываем Game Over
+    gameOverText.style.display = 'block';
     saveUserData(score);
     updateUserInfo();
     displayLeaderboard();
@@ -581,26 +582,11 @@
     togglePopup('leaderboard-popup');
   }
 
- document.addEventListener('keydown', e => {
+  document.addEventListener('keydown', e => {
     if (e.key === 'ArrowLeft' && direction !== 'right') direction = 'left';
     else if (e.key === 'ArrowUp' && direction !== 'down') direction = 'up';
     else if (e.key === 'ArrowRight' && direction !== 'left') direction = 'right';
     else if (e.key === 'ArrowDown' && direction !== 'up') direction = 'down';
-  });
-
-  function setDirection(dir) {
-    if (dir === 'left' && direction !== 'right') direction = 'left';
-    else if (dir === 'up' && direction !== 'down') direction = 'up';
-    else if (dir === 'right' && direction !== 'left') direction = 'right';
-    else if (dir === 'down' && direction !== 'up') direction = 'down';
-  }
-
-  document.querySelectorAll('.control-btn').forEach(btn => {
-    btn.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      setDirection(btn.dataset.dir);
-    });
-      btn.addEventListener('mousedown', () => setDirection(btn.dataset.dir));
   });
 
   function setDirection(dir) {
