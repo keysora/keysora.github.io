@@ -56,6 +56,51 @@ bot.onText(/\/start/, (msg) => {
   });
 });
 
+// Генерация реферальной ссылки
+app.get('/api/referral/:userId', async (req, res) => {
+  const user = await UserProfile.findOne({ telegramId: req.params.userId });
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  
+  if (!user.referralCode) {
+    user.referralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    await user.save();
+  }
+  
+  res.json({ 
+    code: user.referralCode,
+    link: `${WEB_APP_URL}?ref=${user.referralCode}`
+  });
+});
+
+// Обработка реферала
+app.post('/api/referral', async (req, res) => {
+  const { referrerCode, newUserId } = req.body;
+  
+  const referrer = await UserProfile.findOne({ referralCode: referrerCode });
+  if (!referrer) return res.status(400).json({ error: 'Invalid referral code' });
+  
+  // Проверяем, что бонусы еще не начислялись на этой неделе
+  const now = new Date();
+  const lastReset = new Date(referrer.lastBonusReset);
+  const weekAgo = new Date(now.setDate(now.getDate() - 7));
+  
+  if (lastReset < weekAgo) {
+    referrer.referralBonus = 0;
+    referrer.lastBonusReset = new Date();
+  }
+  
+  referrer.referralCount += 1;
+  referrer.referralBonus += 5; // +5 баллов за реферала
+  await referrer.save();
+  
+  // Обновляем нового пользователя
+  await UserProfile.updateOne(
+    { telegramId: newUserId },
+    { $set: { invitedBy: referrer._id } }
+  );
+  
+  res.json({ success: true });
+});
 // API Endpoints (остаются без изменений)
 app.post('/api/save', async (req, res) => {
   /* ... существующий код ... */
