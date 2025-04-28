@@ -17,14 +17,14 @@
   display: block;
   margin: 20px auto;
   background: #000;
-  z-index: 4;  /* Было 2 → ставим выше матрицы */
+  z-index: 3;  /* Было 2 → ставим выше матрицы */
   position: relative;
 }
     canvas#matrix {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 1;  /* Было 0 → делаем ниже игры */
+  z-index: 0;  /* Было 0 → делаем ниже игры */
   pointer-events: none;
 }
     .referral-section {
