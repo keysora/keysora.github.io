@@ -13,21 +13,20 @@
       color: white;
       overflow: hidden;
     }
-    canvas#game {
-      display: block;
-      margin: 20px auto;
-      background: #000;
-      z-index: 3;
-      position: relative;
-    }
+  canvas#game {
+  display: block;
+  margin: 20px auto;
+  background: #000;
+  z-index: 3;  /* Было 2 → ставим выше матрицы */
+  position: relative;
+}
     canvas#matrix {
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 1;
-      pointer-events: none;
-      opacity: 0.7;
-    }
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 0;  /* Было 0 → делаем ниже игры */
+  pointer-events: none;
+}
     .referral-section {
       margin-top: 20px;
       padding: 15px;
@@ -212,8 +211,8 @@
   </div>
 
 <script>
-  // Инициализация игры
   let referralCode = null;
+  // Проверяем реферальную ссылку
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.has('ref')) {
     referralCode = urlParams.get('ref');
@@ -226,7 +225,6 @@
   const box = 20;
   let snake = [];
   let direction = 'right';
-  let lastDirection = 'right';
   let food;
   let gameLoop;
   let score = 0;
@@ -234,42 +232,32 @@
   let bestScore = 0;
   const gameOverText = document.getElementById('game-over-text');
 
-  // Sound setup
+  // Sound effects
   const soundEffects = {
     eat: new Audio('https://raw.githubusercontent.com/keysora/keysora.github.io/refs/heads/main/sounds/eat.mp3'),
     gameOver: new Audio('https://raw.githubusercontent.com/keysora/keysora.github.io/main/sounds/game-over.mp3'),
     move: new Audio('https://raw.githubusercontent.com/keysora/keysora.github.io/main/sounds/move.mp3')
   };
+
+  // Background music
   const bgMusic = new Audio('https://raw.githubusercontent.com/keysora/keysora.github.io/refs/heads/main/sounds/background.mp3');
   bgMusic.loop = true;
+
   let soundEnabled = true;
   let musicPlaying = false;
 
-  // Matrix setup
-  const matrixCanvas = document.getElementById('matrix');
-  const matrixCtx = matrixCanvas.getContext('2d');
-  matrixCanvas.width = window.innerWidth;
-  matrixCanvas.height = window.innerHeight;
-  const matrixColumns = Math.floor(matrixCanvas.width / 10);
-  const drops = Array(matrixColumns).fill(1);
-
-  // Backend API URL
-  const API_URL = 'http://45.32.69.112:3000';
-
-  // Инициализация элементов управления
+  // Sound control element
   const soundControl = document.getElementById('soundControl');
-  soundControl.addEventListener('click', toggleSound);
-
-  // Основные функции
-  function toggleSound() {
+  soundControl.addEventListener('click', () => {
     soundEnabled = !soundEnabled;
-    soundControl.textContent = soundEnabled ? '🔊' : '🔇';
-    if (soundEnabled && musicPlaying) {
-      bgMusic.play().catch(e => console.log('Music play error:', e));
+    if (soundEnabled) {
+      soundControl.textContent = '🔊';
+      if (musicPlaying) bgMusic.play().catch(e => console.log('Music play error:', e));
     } else {
+      soundControl.textContent = '🔇';
       bgMusic.pause();
     }
-  }
+  });
 
   function startBackgroundMusic() {
     if (soundEnabled) {
@@ -284,6 +272,26 @@
       soundEffects[sound].play().catch(e => console.log('Sound play error:', e));
     }
   }
+
+  document.body.addEventListener('click', () => {
+    if (!musicPlaying) startBackgroundMusic();
+  }, { once: true });
+
+  // Matrix setup
+  const matrixCanvas = document.getElementById('matrix');
+  const matrixCtx = matrixCanvas.getContext('2d');
+  matrixCanvas.width = window.innerWidth;
+  matrixCanvas.height = window.innerHeight;
+
+  const matrixColumns = Math.floor(matrixCanvas.width / 10);
+  const drops = Array(matrixColumns).fill(1);
+
+  // Backend API URL
+  const API_URL = 'http://45.32.69.112:3000';
+
+  // User data
+  const userId = generateUserId();
+  document.getElementById('userId').textContent = userId;
 
   function generateUserId() {
     return Math.floor(1000000 + Math.random() * 9000000);
@@ -307,7 +315,144 @@
     };
   }
 
-  // Matrix animation
+  async function getReferralLink() {
+    const userData = getTelegramUserData();
+    try {
+      const response = await fetch(`${API_URL}/api/referral/${userData.id}`);
+      const data = await response.json();
+      return data.link;
+    } catch (error) {
+      console.error('Referral error:', error);
+      return null;
+    }
+  }
+
+  async function saveUserData(score) {
+    const userData = getTelegramUserData();
+    try {
+      const response = await fetch(`${API_URL}/api/save-score`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          telegramId: userData.id,
+          score: score
+        })
+      });
+      const data = await response.json();
+      if (data.success) updateUserInfo();
+    } catch (error) {
+      console.error('Save error:', error);
+      const savedData = JSON.parse(localStorage.getItem(`snake_user_${userData.id}`)) || {};
+      gamesPlayed = (savedData.gamesPlayed || 0) + 1;
+      bestScore = Math.max(score, savedData.bestScore || 0);
+      localStorage.setItem(`snake_user_${userData.id}`, JSON.stringify({
+        gamesPlayed,
+        bestScore
+      }));
+    }
+  }
+
+  async function updateUserInfo() {
+    const userData = getTelegramUserData();
+    document.getElementById('username').textContent = userData.username || 'Guest';
+    document.getElementById('userFullname').textContent = `${userData.first_name} ${userData.last_name}`.trim() || 'Guest';
+    
+    try {
+      const response = await fetch(`${API_URL}/api/user?id=${userData.id}`);
+      const data = await response.json();
+      if (data) {
+        document.getElementById('gamesPlayed').textContent = data.gamesPlayed || 0;
+        document.getElementById('userBestScore').textContent = data.bestScore || 0;
+      }
+    } catch (error) {
+      console.error('Load user error:', error);
+    }
+  }
+
+  async function displayLeaderboard() {
+    const leaderboardElement = document.getElementById('leaderboard');
+    leaderboardElement.innerHTML = '<p>Loading leaderboard...</p>';
+    
+    try {
+      const response = await fetch(`${API_URL}/api/leaderboard`);
+      const leaderboard = await response.json();
+      leaderboardElement.innerHTML = '';
+      
+      if (leaderboard.length === 0) {
+        leaderboardElement.innerHTML = '<p>No players yet this week!</p>';
+        return;
+      }
+      
+      const userData = getTelegramUserData();
+      leaderboard.forEach((player, index) => {
+        const entry = document.createElement('div');
+        entry.className = `leaderboard-entry ${player.userId === userData.id ? 'current-user' : ''}`;
+        entry.innerHTML = `
+          <span>${index + 1}. ${player.username || 'Anonymous'}</span>
+          <span>${player.score}</span>
+        `;
+        leaderboardElement.appendChild(entry);
+      });
+    } catch (error) {
+      console.error('Load leaderboard error:', error);
+      leaderboardElement.innerHTML = '<p>Failed to load leaderboard</p>';
+    }
+  }
+
+  async function sendUserDataToServer() {
+    const userData = getTelegramUserData();
+    try {
+      const response = await fetch(`${API_URL}/api/save-user`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          telegramId: userData.id,
+          username: userData.username,
+          firstName: userData.first_name,
+          lastName: userData.last_name
+        })
+      });
+      const data = await response.json();
+      console.log('User data saved:', data);
+    } catch (error) {
+      console.error('Error saving user data:', error);
+    }
+  }
+
+  function copyReferralLink() {
+    const input = document.getElementById('referralLink');
+    input.select();
+    document.execCommand('copy');
+    const btn = input.nextElementSibling;
+    btn.textContent = 'Скопировано!';
+    setTimeout(() => btn.textContent = 'Копировать ссылку', 2000);
+  }
+
+  async function showAccountPopup() {
+    const referralLink = await getReferralLink();
+    const accountPopup = document.getElementById('account-popup');
+    accountPopup.innerHTML = `
+      <span class="close-btn" onclick="togglePopup('account-popup')">✖</span>
+      <h2>Your Account</h2>
+      <div class="account-info">
+        <p><b>ID:</b> <span id="userId"></span></p>
+        <p><b>Username:</b> <span id="username">TelegramUser</span></p>
+        <p><b>Name:</b> <span id="userFullname">John Doe</span></p>
+        <p><b>Games played:</b> <span id="gamesPlayed">0</span></p>
+        <p><b>Your best score:</b> <span id="userBestScore">0</span></p>
+      </div>
+      <div class="referral-section">
+        <h3>Реферальная система</h3>
+        <p>Пригласи друзей и получай +5 баллов за каждого!</p>
+        <input type="text" id="referralLink" readonly value="${referralLink || 'Loading...'}">
+        <button class="button" onclick="copyReferralLink()">Копировать ссылку</button>
+      </div>
+    `;
+    
+    updateUserInfo();
+    togglePopup('account-popup');
+  }
+
   function drawMatrix() {
     matrixCtx.fillStyle = 'rgba(0, 0, 0, 0.03)';
     matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
@@ -318,185 +463,160 @@
       const text = String.fromCharCode(0x30A0 + Math.random() * 96);
       matrixCtx.fillText(text, i * 10, drops[i] * 10);
       if (drops[i] * 10 > matrixCanvas.height && Math.random() > 0.997) drops[i] = 0;
-      drops[i] += 0.5;
+      drops[i]+= 0.5;
     }
   }
 
-  // Game functions
+  let matrixInterval = setInterval(drawMatrix, 50);
+
   function startGame() {
-    // Initialize game state
-    gameOverText.style.display = 'none';
-    snake = [{x: 9 * box, y: 10 * box}];
-    direction = 'right';
-    lastDirection = 'right';
-    food = generateFood();
-    score = 0;
-
-    // Clear previous game loop if exists
-    if (gameLoop) clearInterval(gameLoop);
-    
-    // Start new game loop
-    gameLoop = setInterval(gameUpdate, 100);
-    
-    // Focus canvas for keyboard input
-    canvas.focus();
-    
-    // Start background music
-    startBackgroundMusic();
-  }
-
-  function generateFood() {
-    return {
-      x: Math.floor(Math.random() * 20) * box,
-      y: Math.floor(Math.random() * 20) * box
-    };
-  }
-
-  function gameUpdate() {
-    // Move snake
-    const head = {...snake[0]};
-    
-    switch(direction) {
-      case 'left': head.x -= box; break;
-      case 'right': head.x += box; break;
-      case 'up': head.y -= box; break;
-      case 'down': head.y += box; break;
+    // Обработка реферального кода
+    if (referralCode) {
+      const userData = getTelegramUserData();
+      fetch(`${API_URL}/api/referral`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          referrerCode: referralCode,
+          newUserId: userData.id
+        })
+      }).catch(console.error);
     }
-    
-    // Check collisions
-    if (checkCollision(head)) {
+
+  
+    matrixCtx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+  gameOverText.style.display = 'none';
+  snake = [{x: 9 * box, y: 10 * box}];
+  direction = 'right';
+  food = {
+    x: Math.floor(Math.random() * 20) * box,
+    y: Math.floor(Math.random() * 20) * box,
+  };
+  score = 0;
+
+  if (gameLoop) clearInterval(gameLoop);
+  gameLoop = setInterval(draw, 100); // ✅ Теперь змейка будет двигаться
+}
+
+  
+  function draw() {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    for (let i = 0; i < snake.length; i++) {
+      ctx.fillStyle = 'crimson';
+      ctx.fillRect(snake[i].x, snake[i].y, box, box);
+    }
+
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(food.x, food.y, box, box);
+
+    let headX = snake[0].x;
+    let headY = snake[0].y;
+
+    if (direction === 'left') headX -= box;
+    if (direction === 'right') headX += box;
+    if (direction === 'up') headY -= box;
+    if (direction === 'down') headY += box;
+
+    // Проверка столкновений
+    let isCollision = false;
+    if (headX < 0 || headX >= canvas.width || headY < 0 || headY >= canvas.height) {
+      isCollision = true;
+    }
+    for (let i = 0; i < snake.length; i++) {
+      if (headX === snake[i].x && headY === snake[i].y) {
+        isCollision = true;
+        break;
+      }
+    }
+
+    if (isCollision) {
       gameOver();
       return;
     }
-    
-    // Check food
-    if (head.x === food.x && head.y === food.y) {
+
+    if (headX === food.x && headY === food.y) {
       playSound('eat');
+      food = {
+        x: Math.floor(Math.random() * 20) * box,
+        y: Math.floor(Math.random() * 20) * box,
+      };
       score += 3;
-      food = generateFood();
     } else {
       snake.pop();
     }
-    
-    snake.unshift(head);
-    lastDirection = direction;
-    
-    // Draw everything
-    drawGame();
-  }
 
-  function drawGame() {
-    // Clear canvas
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw snake
-    ctx.fillStyle = 'crimson';
-    snake.forEach(segment => {
-      ctx.fillRect(segment.x, segment.y, box, box);
-    });
-    
-    // Draw food
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(food.x, food.y, box, box);
-  }
-
-  function checkCollision(head) {
-    // Wall collision
-    if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height) {
-      return true;
-    }
-    
-    // Self collision
-    for (let i = 0; i < snake.length; i++) {
-      if (head.x === snake[i].x && head.y === snake[i].y) {
-        return true;
-      }
-    }
-    
-    return false;
+    const newHead = {x: headX, y: headY};
+    snake.unshift(newHead);
   }
 
   function gameOver() {
-    clearInterval(gameLoop);
     playSound('gameOver');
-    gameOverText.style.display = 'block';
+    clearInterval(gameLoop);
+    gameOverText.style.display = 'block'; // Показываем Game Over
     saveUserData(score);
     updateUserInfo();
     displayLeaderboard();
   }
 
-  // Controls
-  function setupControls() {
-    // Keyboard controls
-    document.addEventListener('keydown', e => {
-      if (!gameLoop) return;
-      
-      switch(e.key) {
-        case 'ArrowLeft':
-          if (lastDirection !== 'right') direction = 'left';
-          break;
-        case 'ArrowUp':
-          if (lastDirection !== 'down') direction = 'up';
-          break;
-        case 'ArrowRight':
-          if (lastDirection !== 'left') direction = 'right';
-          break;
-        case 'ArrowDown':
-          if (lastDirection !== 'up') direction = 'down';
-          break;
+  function collision(head, array) {
+    for (let i = 0; i < array.length; i++) {
+      if (head.x === array[i].x && head.y === array[i].y) {
+        return true;
       }
-      e.preventDefault();
-    });
-    
-    // Mobile controls
-    document.querySelectorAll('.control-btn').forEach(btn => {
-      btn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        if (!gameLoop) return;
-        setDirection(btn.dataset.dir);
-      });
-      btn.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        if (!gameLoop) return;
-        setDirection(btn.dataset.dir);
-      });
-    });
+    }
+    return false;
   }
+
+  function togglePopup(id) {
+    const popup = document.getElementById(id);
+    popup.style.display = popup.style.display === 'flex' ? 'none' : 'flex';
+  }
+
+  function showLeaderboardPopup() {
+    displayLeaderboard();
+    togglePopup('leaderboard-popup');
+  }
+
+ document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft' && direction !== 'right') direction = 'left';
+    else if (e.key === 'ArrowUp' && direction !== 'down') direction = 'up';
+    else if (e.key === 'ArrowRight' && direction !== 'left') direction = 'right';
+    else if (e.key === 'ArrowDown' && direction !== 'up') direction = 'down';
+  });
 
   function setDirection(dir) {
-    switch(dir) {
-      case 'left':
-        if (lastDirection !== 'right') direction = 'left';
-        break;
-      case 'up':
-        if (lastDirection !== 'down') direction = 'up';
-        break;
-      case 'right':
-        if (lastDirection !== 'left') direction = 'right';
-        break;
-      case 'down':
-        if (lastDirection !== 'up') direction = 'down';
-        break;
-    }
+    if (dir === 'left' && direction !== 'right') direction = 'left';
+    else if (dir === 'up' && direction !== 'down') direction = 'up';
+    else if (dir === 'right' && direction !== 'left') direction = 'right';
+    else if (dir === 'down' && direction !== 'up') direction = 'down';
   }
 
-  // Initialize everything
-  function init() {
-    const userId = generateUserId();
-    document.getElementById('userId').textContent = userId;
-    
-    // Start matrix animation
-    let matrixInterval = setInterval(drawMatrix, 50);
-    
-    // Setup controls
-    setupControls();
-    
-    // Focus canvas for keyboard input
-    canvas.setAttribute('tabindex', '0');
-    canvas.focus();
-    
-    // Telegram WebApp integration
+  document.querySelectorAll('.control-btn').forEach(btn => {
+    btn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      setDirection(btn.dataset.dir);
+    });
+      btn.addEventListener('mousedown', () => setDirection(btn.dataset.dir));
+  });
+
+  function setDirection(dir) {
+    if (dir === 'left' && direction !== 'right') direction = 'left';
+    else if (dir === 'up' && direction !== 'down') direction = 'up';
+    else if (dir === 'right' && direction !== 'left') direction = 'right';
+    else if (dir === 'down' && direction !== 'up') direction = 'down';
+  }
+
+  document.querySelectorAll('.control-btn').forEach(btn => {
+    btn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      setDirection(btn.dataset.dir);
+    });
+    btn.addEventListener('mousedown', () => setDirection(btn.dataset.dir));
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
     if (window.Telegram && window.Telegram.WebApp) {
       window.Telegram.WebApp.expand();
       window.Telegram.WebApp.MainButton
@@ -507,20 +627,10 @@
         })
         .show();
     }
-    
-    // Initial data load
     updateUserInfo();
     displayLeaderboard();
     sendUserDataToServer();
-    
-    // Start background music on first interaction
-    document.body.addEventListener('click', () => {
-      if (!musicPlaying) startBackgroundMusic();
-    }, { once: true });
-  }
-
-  // Initialize when DOM is loaded
-  document.addEventListener('DOMContentLoaded', init);
+  });
 </script>
 </body>
 </html>
