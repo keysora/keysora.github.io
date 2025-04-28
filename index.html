@@ -192,6 +192,26 @@
   </div>
 
 <script>
+  let referralCode = null;
+  // Проверяем реферальную ссылку
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.has('ref')) {
+  referralCode = urlParams.get('ref');
+  localStorage.setItem('last_referral', referralCode);
+}
+
+// Функция для получения реферальной ссылки пользователя
+async function getReferralLink() {
+  const userData = getTelegramUserData();
+  try {
+    const response = await fetch(`${API_URL}/api/referral/${userData.id}`);
+    const data = await response.json();
+    return data.link;
+  } catch (error) {
+    console.error('Referral error:', error);
+    return null;
+  }
+}
   // Game variables
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
