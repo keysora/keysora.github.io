@@ -128,7 +128,20 @@ app.get('/game', (req, res) => {
 });
 
 app.get('/api/leaderboard', async (req, res) => {
-  /* ... существующий код ... */
+  const leaderboard = await UserProfile.aggregate([
+    {
+      $project: {
+        username: 1,
+        score: 1,
+        referralBonus: 1,
+        totalScore: { $add: ['$score', '$referralBonus'] }
+      }
+    },
+    { $sort: { totalScore: -1 } },
+    { $limit: 10 }
+  ]);
+  
+  res.json(leaderboard);
 });
 
 app.get('/api/health', (req, res) => {
