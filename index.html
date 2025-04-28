@@ -483,20 +483,20 @@
       }).catch(console.error);
     }
 
-    clearInterval(matrixInterval);
+  
     matrixCtx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
-    gameOverText.style.display = 'none';
-    snake = [{x: 9 * box, y: 10 * box}];
-    direction = 'right';
-    food = {
-      x: Math.floor(Math.random() * 20) * box,
-      y: Math.floor(Math.random() * 20) * box,
-    };
-    score = 0;
+  gameOverText.style.display = 'none';
+  snake = [{x: 9 * box, y: 10 * box}];
+  direction = 'right';
+  food = {
+    x: Math.floor(Math.random() * 20) * box,
+    y: Math.floor(Math.random() * 20) * box,
+  };
+  score = 0;
 
-    if (gameLoop) clearInterval(gameLoop);
-    gameLoop = setInterval(draw, 100);
-  }
+  if (gameLoop) clearInterval(gameLoop);
+  gameLoop = setInterval(draw, 100); // ✅ Теперь змейка будет двигаться
+}
 
   function draw() {
     ctx.fillStyle = '#000';
