@@ -24,8 +24,13 @@ const userProfileSchema = new mongoose.Schema({
   username: { type: String },
   firstName: { type: String },
   lastName: { type: String },
-  joinDate: { type: Date, default: Date.now }
-}, { collection: 'user_profiles' });
+  joinDate: { type: Date, default: Date.now },
+  referralCode: { type: String, unique: true },
+  invitedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'UserProfile' },
+  referralCount: { type: Number, default: 0 },
+  referralBonus: { type: Number, default: 0 },
+  lastBonusReset: { type: Date, default: Date.now }}, 
+  { collection: 'user_profiles' });
 
 const WeeklyLeaderboard = mongoose.model('WeeklyLeaderboard', weeklyLeaderboardSchema);
 const UserProfile = mongoose.model('UserProfile', userProfileSchema);
