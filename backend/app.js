@@ -92,6 +92,23 @@ app.post('/api/referral', async (req, res) => {
   referrer.referralCount += 1;
   referrer.referralBonus += 5; // +5 баллов за реферала
   await referrer.save();
+
+
+  // Еженедельный сброс в 00:00 по воскресеньям
+const cron = require('node-cron');
+cron.schedule('0 0 * * 0', async () => {
+  await UserProfile.updateMany(
+    { referralBonus: { $gt: 0 } },
+    { 
+      $set: { 
+        referralBonus: 0,
+        lastBonusReset: new Date() 
+      } 
+    }
+  );
+  console.log('Реферальные баллы сброшены!');
+});
+
   
   // Обновляем нового пользователя
   await UserProfile.updateOne(
