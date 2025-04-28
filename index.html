@@ -454,7 +454,7 @@
   }
 
   function drawMatrix() {
-    matrixCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+    matrixCtx.fillStyle = 'rgba(0, 0, 0, 0.03)';
     matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
     matrixCtx.fillStyle = 'crimson';
     matrixCtx.font = '10px monospace';
@@ -462,8 +462,8 @@
     for (let i = 0; i < drops.length; i++) {
       const text = String.fromCharCode(0x30A0 + Math.random() * 96);
       matrixCtx.fillText(text, i * 10, drops[i] * 10);
-      if (drops[i] * 10 > matrixCanvas.height && Math.random() > 0.975) drops[i] = 0;
-      drops[i]++;
+      if (drops[i] * 10 > matrixCanvas.height && Math.random() > 0.997) drops[i] = 0;
+      drops[i]+= 0.5;
     }
   }
 
