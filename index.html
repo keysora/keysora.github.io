@@ -13,20 +13,20 @@
       color: white;
       overflow: hidden;
     }
-    canvas#game {
-      display: block;
-      margin: 20px auto;
-      background: #000;
-      z-index: 2;
-      position: relative;
-    }
+  canvas#game {
+  display: block;
+  margin: 20px auto;
+  background: #000;
+  z-index: 3;  /* Было 2 → ставим выше матрицы */
+  position: relative;
+}
     canvas#matrix {
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 0;
-      pointer-events: none;
-    }
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1;  /* Было 0 → делаем ниже игры */
+  pointer-events: none;
+}
     .referral-section {
       margin-top: 20px;
       padding: 15px;
