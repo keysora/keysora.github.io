@@ -73,13 +73,14 @@
       border-radius: 10px;
       cursor: pointer;
       font-size: 1em;
-    }
+      z-index: 4;    }
+    
     .mobile-controls {
       display: none;
       flex-direction: column;
       margin-top: 20px;
       align-items: center;
-      z-index: 3;
+      z-index: 4;
       position: relative;
     }
     .mobile-controls .row {
@@ -87,6 +88,7 @@
       justify-content: center;
       gap: 10px;
       margin-bottom: 10px;
+      
     }
     @media (max-width: 768px) {
       .mobile-controls {
