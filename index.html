@@ -579,28 +579,15 @@
     togglePopup('leaderboard-popup');
   }
 
- document.addEventListener('keydown', e => {
+  // PC Controls
+  document.addEventListener('keydown', e => {
     if (e.key === 'ArrowLeft' && direction !== 'right') direction = 'left';
     else if (e.key === 'ArrowUp' && direction !== 'down') direction = 'up';
     else if (e.key === 'ArrowRight' && direction !== 'left') direction = 'right';
     else if (e.key === 'ArrowDown' && direction !== 'up') direction = 'down';
   });
 
-  function setDirection(dir) {
-    if (dir === 'left' && direction !== 'right') direction = 'left';
-    else if (dir === 'up' && direction !== 'down') direction = 'up';
-    else if (dir === 'right' && direction !== 'left') direction = 'right';
-    else if (dir === 'down' && direction !== 'up') direction = 'down';
-  }
-
-  document.querySelectorAll('.control-btn').forEach(btn => {
-    btn.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      setDirection(btn.dataset.dir);
-    });
-      btn.addEventListener('mousedown', () => setDirection(btn.dataset.dir));
-  });
-
+  // Mobile Controls
   function setDirection(dir) {
     if (dir === 'left' && direction !== 'right') direction = 'left';
     else if (dir === 'up' && direction !== 'down') direction = 'up';
@@ -615,6 +602,7 @@
     });
     btn.addEventListener('mousedown', () => setDirection(btn.dataset.dir));
   });
+
 
   document.addEventListener('DOMContentLoaded', () => {
     if (window.Telegram && window.Telegram.WebApp) {
